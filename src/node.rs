@@ -16,8 +16,13 @@ impl Node {
         self.edges.contains(&node2.id)
     }
 
-    pub fn has_cycle(&self) -> bool {
+    pub fn has_buckle(&self) -> bool {
         self.edges.contains(&self.id)
+    }
+
+    pub fn remove_edge(&mut self, edge_id: &usize) {
+        let index = self.edges.iter().position(|&id| id == *edge_id).unwrap();
+        self.edges.remove(index);
     }
 }
 

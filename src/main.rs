@@ -60,7 +60,7 @@ fn init_nodes() -> Graph {
                 continue;
             }
 
-            nodes.push(Node {
+            nodes.push(mut Node {
                 id: i - 1,
                 code,
                 name,

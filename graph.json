@@ -6,7 +6,7 @@
             "code": 1,
             "name": "cantina",
             "local_type": "restaurante",
-            "edges": []
+            "edges": [1]
         },
         {
             "id": 1,

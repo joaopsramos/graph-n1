@@ -102,6 +102,7 @@ fn parse_option(option: &str) -> Option<MenuOpt> {
 pub fn run_option(option: MenuOpt, graph: &mut Graph) {
     let result = match option {
         A => verify_if_two_nodes_are_adjacent(graph),
+        F => remove_edge_menu(graph),
         Save => save_graph(graph),
         Load => load_graph(graph),
         _ => Ok(format!("i")),
@@ -127,6 +128,15 @@ fn verify_if_two_nodes_are_adjacent(graph: &Graph) -> RunOptResult {
     };
 
     Ok(result)
+}
+
+fn remove_edge_menu(graph: &Graph) -> RunOptResult {
+    let mut node1 = read_node(graph)?;
+    let node2 = read_node(graph)?;
+
+    node1.remove_edge(&node2.id);
+
+    Ok(format!("Removido com sucesso!"))
 }
 
 fn save_graph(graph: &Graph) -> RunOptResult {
