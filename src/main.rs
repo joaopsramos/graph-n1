@@ -1,8 +1,8 @@
 mod graph;
 mod menu;
-mod vertex;
+mod node;
 
-use crate::{graph::*, menu::MenuOpt, vertex::*};
+use crate::{graph::*, menu::MenuOpt, node::*};
 use colored::*;
 use std::io;
 use std::str::FromStr;
@@ -10,11 +10,11 @@ use std::str::FromStr;
 const GRAPH_SIZE: usize = 2;
 
 fn main() {
-    // let mut graph = Graph {
-    //     size: GRAPH_SIZE,
-    //     vertices: Vec::new(),
-    // };
-    let mut graph = init_vertices();
+    let mut graph = Graph {
+        size: GRAPH_SIZE,
+        nodes: Vec::new(),
+    };
+    // let mut graph = init_nodes();
 
     loop {
         menu::show_menu();
@@ -34,8 +34,8 @@ fn main() {
     // dbg!(graph);
 }
 
-fn init_vertices() -> Graph {
-    let mut vertices = Vec::new();
+fn init_nodes() -> Graph {
+    let mut nodes = Vec::new();
 
     for i in 1..=GRAPH_SIZE {
         let mut code = String::new();
@@ -50,7 +50,7 @@ fn init_vertices() -> Graph {
             let name: String = read_value("Nome do local:", &mut name, None);
             let local_type: String = read_value("Tipo do local:", &mut local_type, None);
 
-            if vertices
+            if nodes
                 .iter()
                 .map(|v: &Node| v.code)
                 .collect::<Vec<u32>>()
@@ -60,7 +60,7 @@ fn init_vertices() -> Graph {
                 continue;
             }
 
-            vertices.push(Node {
+            nodes.push(Node {
                 id: i - 1,
                 code,
                 name,
@@ -74,7 +74,7 @@ fn init_vertices() -> Graph {
 
     Graph {
         size: GRAPH_SIZE,
-        vertices,
+        nodes,
     }
 }
 

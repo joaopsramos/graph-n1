@@ -12,8 +12,8 @@ pub struct Node {
 }
 
 impl Node {
-    pub fn is_adjacent(&self, vertex2: &Self) -> bool {
-        self.edges.contains(&vertex2.id)
+    pub fn is_adjacent(&self, node2: &Self) -> bool {
+        self.edges.contains(&node2.id)
     }
 
     pub fn has_cycle(&self) -> bool {

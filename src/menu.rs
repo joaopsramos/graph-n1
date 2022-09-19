@@ -1,4 +1,4 @@
-use crate::{graph::Graph, vertex::Node};
+use crate::{graph::Graph, node::Node};
 use colored::Colorize;
 use std::{fs, io, path::Path};
 use MenuOpt::*;
@@ -101,7 +101,7 @@ fn parse_option(option: &str) -> Option<MenuOpt> {
 
 pub fn run_option(option: MenuOpt, graph: &mut Graph) {
     let result = match option {
-        A => verify_if_two_vertices_are_adjacent(graph),
+        A => verify_if_two_nodes_are_adjacent(graph),
         Save => save_graph(graph),
         Load => load_graph(graph),
         _ => Ok(format!("i")),
@@ -113,17 +113,17 @@ pub fn run_option(option: MenuOpt, graph: &mut Graph) {
     }
 }
 
-fn verify_if_two_vertices_are_adjacent(graph: &Graph) -> RunOptResult {
+fn verify_if_two_nodes_are_adjacent(graph: &Graph) -> RunOptResult {
     println!("{}", "* Primeiro vértice *".blue().bold());
-    let vertex1 = read_vertex(graph)?;
+    let node1 = read_node(graph)?;
 
     println!("\n{}", "* Segundo vértice *".blue().bold());
-    let vertex2 = read_vertex(graph)?;
+    let node2 = read_node(graph)?;
 
-    let result = if vertex1.is_adjacent(vertex2) {
-        format!("Os vértices {vertex1} e {vertex2} são adjacentes.")
+    let result = if node1.is_adjacent(node2) {
+        format!("Os vértices {node1} e {node2} são adjacentes.")
     } else {
-        format!("Os vértices {vertex1} e {vertex2} não são adjacentes.")
+        format!("Os vértices {node1} e {node2} não são adjacentes.")
     };
 
     Ok(result)
@@ -159,9 +159,9 @@ fn load_graph(graph: &mut Graph) -> RunOptResult {
     Ok(format!("{}", "Grafo carregado com sucesso!".green()))
 }
 
-fn read_vertex(graph: &Graph) -> Result<&Node, String> {
+fn read_node(graph: &Graph) -> Result<&Node, String> {
     loop {
-        show_available_vertices(graph);
+        show_available_nodes(graph);
         println!("\n{}", "Digite um código:".yellow());
 
         let mut code = String::new();
@@ -177,7 +177,7 @@ fn read_vertex(graph: &Graph) -> Result<&Node, String> {
         };
 
         match graph.find_by_code(code) {
-            Some(vertex) => break Ok(vertex),
+            Some(node) => break Ok(node),
             None => {
                 println!(
                     "{}",
@@ -189,10 +189,10 @@ fn read_vertex(graph: &Graph) -> Result<&Node, String> {
     }
 }
 
-fn show_available_vertices(graph: &Graph) {
+fn show_available_nodes(graph: &Graph) {
     println!("Vértices disponíveis:");
 
-    for vertex in graph.vertices.iter() {
-        println!("{} - {vertex}", vertex.code.to_string().magenta().bold());
+    for node in graph.nodes.iter() {
+        println!("{} - {node}", node.code.to_string().magenta().bold());
     }
 }
