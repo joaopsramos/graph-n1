@@ -131,11 +131,12 @@ fn verify_if_two_nodes_are_adjacent(graph: &Graph) -> RunOptResult {
 }
 
 fn remove_edge_menu(graph: &mut Graph) -> RunOptResult {
-    let node = read_node(graph)?;
-    let code_to_remove = read_code(graph);
-    let node = graph.find_by_code_mut(node.code).unwrap();
+    let graph_clone = &graph.clone();
 
-    node.remove_edge(code_to_remove);
+    let node1 = read_node_mut(graph)?;
+    let node2 = read_node(graph_clone)?;
+
+    node1.remove_edge(&node2);
 
     Ok(format!("Removido com sucesso!"))
 }
@@ -189,7 +190,7 @@ fn read_code(graph: &Graph) -> usize {
     }
 }
 
-fn read_node(graph: &Graph) -> Result<&Node, String> {
+fn read_node<'a>(graph: &'a Graph) -> Result<&'a Node, String> {
     loop {
         let code = read_code(graph);
 
@@ -206,6 +207,26 @@ fn read_node(graph: &Graph) -> Result<&Node, String> {
     }
 }
 
+fn read_node_mut(graph: &mut Graph) -> Result<&mut Node, String> {
+    let graph_clone = graph.clone();
+
+    let code = loop {
+        let code = read_code(&graph_clone);
+
+        match graph.find_by_code(code) {
+            Some(_) => break code,
+            None => {
+                println!(
+                    "{}",
+                    "Nenhum vértice foi encontrado com esse código, tente digitar outro...".red()
+                );
+                continue;
+            }
+        }
+    };
+
+    Ok(graph.find_by_code_mut(code).unwrap())
+}
 fn show_available_nodes(graph: &Graph) {
     println!("Vértices disponíveis:");
 

@@ -19,13 +19,11 @@ impl Node {
         self.edges.contains(&self.code)
     }
 
-    pub fn remove_edge(&mut self, edge_code: usize) {
-        let index = self
-            .edges
+    pub fn remove_edge(&mut self, node_to_remove: &Self) {
+        self.edges
             .iter()
-            .position(|code| *code == edge_code)
-            .unwrap();
-        self.edges.remove(index);
+            .position(|code| *code == node_to_remove.code)
+            .and_then(|index| Some(self.edges.remove(index)));
     }
 }
 

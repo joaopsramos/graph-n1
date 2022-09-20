@@ -1,7 +1,7 @@
 use crate::node::Node;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Graph {
     pub size: usize,
     pub nodes: Vec<Node>,
