@@ -8,18 +8,17 @@ pub struct Graph {
 }
 
 impl Graph {
-    pub fn find_by_code(&self, code: u32) -> Option<&Node> {
+    pub fn find_by_code(&self, code: usize) -> Option<&Node> {
         self.nodes.iter().find(|node| node.code == code)
     }
-
-    fn get_by_id(&self, id: usize) -> Option<&Node> {
-        self.nodes.iter().find(|node| node.id == id)
+    pub fn find_by_code_mut(&mut self, code: usize) -> Option<&mut Node> {
+        self.nodes.iter_mut().find(|node| node.code == code)
     }
 
-    fn get_by_ids(&self, ids: &Vec<usize>) -> Vec<&Node> {
+    fn get_by_codes(&self, codes: &Vec<usize>) -> Vec<&Node> {
         self.nodes
             .iter()
-            .filter(|node| ids.contains(&node.id))
+            .filter(|node| codes.contains(&node.code))
             .collect()
     }
 
@@ -27,23 +26,23 @@ impl Graph {
         let mut queue = Vec::new();
         let mut visited = Vec::new();
 
-        queue.push(vec![start_node.id]);
-        visited.push(start_node.id);
+        queue.push(vec![start_node.code]);
+        visited.push(start_node.code);
 
         while let Some(path) = queue.pop() {
-            let current_id = path.last().unwrap();
+            let current_code = path.last().unwrap();
 
-            if *current_id == end_node.id {
-                let nodes = self.get_by_ids(&path);
+            if *current_code == end_node.code {
+                let nodes = self.get_by_codes(&path);
                 return Some(nodes);
             }
 
-            let current_node = self.get_by_id(*current_id).unwrap();
+            let current_node = self.find_by_code(*current_code).unwrap();
 
-            for id in current_node.edges.iter() {
-                if !visited.contains(id) {
+            for code in current_node.edges.iter() {
+                if !visited.contains(code) {
                     let mut new_path = path.clone();
-                    new_path.push(*id);
+                    new_path.push(*code);
                     queue.push(new_path);
                 }
             }

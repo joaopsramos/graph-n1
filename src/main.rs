@@ -38,7 +38,6 @@ fn init_nodes() -> Graph {
     let mut nodes = Vec::new();
 
     for i in 1..=GRAPH_SIZE {
-        let mut code = String::new();
         let mut name = String::new();
         let mut local_type = String::new();
 
@@ -46,23 +45,21 @@ fn init_nodes() -> Graph {
         println!("{}", format!("** Vértice {i}/{GRAPH_SIZE} **").blue());
 
         loop {
-            let code: u32 = read_value("Código:", &mut code, Some("Código precisa ser um número"));
             let name: String = read_value("Nome do local:", &mut name, None);
             let local_type: String = read_value("Tipo do local:", &mut local_type, None);
 
             if nodes
                 .iter()
                 .map(|v: &Node| v.code)
-                .collect::<Vec<u32>>()
-                .contains(&code)
+                .collect::<Vec<usize>>()
+                .contains(&i)
             {
                 println!("{}", "Esse código já existe, tente usar outro".red());
                 continue;
             }
 
-            nodes.push(mut Node {
-                id: i - 1,
-                code,
+            nodes.push(Node {
+                code: i,
                 name,
                 local_type,
                 edges: Vec::new(),

@@ -130,11 +130,12 @@ fn verify_if_two_nodes_are_adjacent(graph: &Graph) -> RunOptResult {
     Ok(result)
 }
 
-fn remove_edge_menu(graph: &Graph) -> RunOptResult {
-    let mut node1 = read_node(graph)?;
-    let node2 = read_node(graph)?;
+fn remove_edge_menu(graph: &mut Graph) -> RunOptResult {
+    let node = read_node(graph)?;
+    let code_to_remove = read_code(graph);
+    let node = graph.find_by_code_mut(node.code).unwrap();
 
-    node1.remove_edge(&node2.id);
+    node.remove_edge(code_to_remove);
 
     Ok(format!("Removido com sucesso!"))
 }
@@ -169,7 +170,7 @@ fn load_graph(graph: &mut Graph) -> RunOptResult {
     Ok(format!("{}", "Grafo carregado com sucesso!".green()))
 }
 
-fn read_node(graph: &Graph) -> Result<&Node, String> {
+fn read_code(graph: &Graph) -> usize {
     loop {
         show_available_nodes(graph);
         println!("\n{}", "Digite um código:".yellow());
@@ -178,13 +179,19 @@ fn read_node(graph: &Graph) -> Result<&Node, String> {
 
         io::stdin().read_line(&mut code).unwrap();
 
-        let code: u32 = match code.trim().parse() {
-            Ok(parsed_code) => parsed_code,
+        match code.trim().parse() {
+            Ok(parsed_code) => break parsed_code,
             Err(_) => {
                 println!("{}", "Por favor, digite um código válido.".red());
                 continue;
             }
         };
+    }
+}
+
+fn read_node(graph: &Graph) -> Result<&Node, String> {
+    loop {
+        let code = read_code(graph);
 
         match graph.find_by_code(code) {
             Some(node) => break Ok(node),

@@ -4,8 +4,7 @@ use std::fmt::Display;
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Node {
-    pub id: usize,
-    pub code: u32,
+    pub code: usize,
     pub name: String,
     pub local_type: String,
     pub edges: Vec<usize>,
@@ -13,15 +12,19 @@ pub struct Node {
 
 impl Node {
     pub fn is_adjacent(&self, node2: &Self) -> bool {
-        self.edges.contains(&node2.id)
+        self.edges.contains(&node2.code)
     }
 
     pub fn has_buckle(&self) -> bool {
-        self.edges.contains(&self.id)
+        self.edges.contains(&self.code)
     }
 
-    pub fn remove_edge(&mut self, edge_id: &usize) {
-        let index = self.edges.iter().position(|&id| id == *edge_id).unwrap();
+    pub fn remove_edge(&mut self, edge_code: usize) {
+        let index = self
+            .edges
+            .iter()
+            .position(|code| *code == edge_code)
+            .unwrap();
         self.edges.remove(index);
     }
 }

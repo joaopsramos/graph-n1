@@ -2,14 +2,12 @@
     "size": 2,
     "nodes": [
         {
-            "id": 0,
             "code": 1,
             "name": "cantina",
             "local_type": "restaurante",
-            "edges": [1]
+            "edges": [2]
         },
         {
-            "id": 1,
             "code": 2,
             "name": "predio 1",
             "local_type": "academico",
