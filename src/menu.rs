@@ -7,6 +7,33 @@ type RunOptResult = Result<String, String>;
 
 const FILE_PATH: &str = "./graph.json";
 
+struct Print;
+
+impl Print {
+    fn invalid_option() {
+        println!(
+            "{}",
+            "Por favor, digite uma opção válida conforme o menu.".red()
+        );
+    }
+
+    fn node_not_found_with_code() {
+        println!(
+            "{}",
+            "Nenhum vértice foi encontrado com esse código, tente digitar outro...".red()
+        );
+    }
+
+    fn invalid_code() {
+        println!("{}", "Por favor, digite um código válido.".red());
+    }
+
+    fn nth_node(num: &str) {
+        let msg = format!("* {num} vértice *");
+        println!("{}", msg.blue().bold());
+    }
+}
+
 #[derive(PartialEq)]
 pub enum MenuOpt {
     A,
@@ -70,10 +97,7 @@ pub fn read_option() -> MenuOpt {
         match parse_option(&option.trim()) {
             Some(opt) => break opt,
             None => {
-                println!(
-                    "{}",
-                    "Por favor, digite uma opção válida conforme o menu.".red()
-                );
+                Print::invalid_option();
                 continue;
             }
         };
@@ -115,10 +139,10 @@ pub fn run_option(option: MenuOpt, graph: &mut Graph) {
 }
 
 fn verify_if_two_nodes_are_adjacent(graph: &Graph) -> RunOptResult {
-    println!("{}", "* Primeiro vértice *".blue().bold());
+    Print::nth_node("Primeiro");
     let node1 = read_node(graph)?;
 
-    println!("\n{}", "* Segundo vértice *".blue().bold());
+    Print::nth_node("Segundo");
     let node2 = read_node(graph)?;
 
     let result = if node1.is_adjacent(node2) {
@@ -183,7 +207,7 @@ fn read_code(graph: &Graph) -> usize {
         match code.trim().parse() {
             Ok(parsed_code) => break parsed_code,
             Err(_) => {
-                println!("{}", "Por favor, digite um código válido.".red());
+                Print::invalid_code();
                 continue;
             }
         };
@@ -197,10 +221,7 @@ fn read_node<'a>(graph: &'a Graph) -> Result<&'a Node, String> {
         match graph.find_by_code(code) {
             Some(node) => break Ok(node),
             None => {
-                println!(
-                    "{}",
-                    "Nenhum vértice foi encontrado com esse código, tente digitar outro...".red()
-                );
+                Print::node_not_found_with_code();
                 continue;
             }
         }
@@ -216,10 +237,7 @@ fn read_node_mut(graph: &mut Graph) -> Result<&mut Node, String> {
         match graph.find_by_code(code) {
             Some(_) => break code,
             None => {
-                println!(
-                    "{}",
-                    "Nenhum vértice foi encontrado com esse código, tente digitar outro...".red()
-                );
+                Print::node_not_found_with_code();
                 continue;
             }
         }
