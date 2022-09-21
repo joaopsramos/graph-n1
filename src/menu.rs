@@ -70,10 +70,7 @@ pub fn read_option() -> MenuOpt {
         match parse_option(&option.trim()) {
             Some(opt) => break opt,
             None => {
-                println!(
-                    "{}",
-                    "Por favor, digite uma opção válida conforme o menu.".red()
-                );
+                println!("{}", Feedback::invalid_option());
                 continue;
             }
         };
@@ -115,16 +112,16 @@ pub fn run_option(option: MenuOpt, graph: &mut Graph) {
 }
 
 fn verify_if_two_nodes_are_adjacent(graph: &Graph) -> RunOptResult {
-    println!("{}", "* Primeiro vértice *".blue().bold());
+    Feedback::nth_node("Primeiro");
     let node1 = read_node(graph)?;
 
-    println!("\n{}", "* Segundo vértice *".blue().bold());
+    Feedback::nth_node("Segundo");
     let node2 = read_node(graph)?;
 
     let result = if node1.is_adjacent(node2) {
-        format!("Os vértices {node1} e {node2} são adjacentes.")
+        Feedback::adjacent_nodes(node1, node2)
     } else {
-        format!("Os vértices {node1} e {node2} não são adjacentes.")
+        Feedback::not_adjacent_nodes(node1, node2)
     };
 
     Ok(result)
@@ -138,15 +135,15 @@ fn remove_edge_menu(graph: &mut Graph) -> RunOptResult {
 
     node1.remove_edge(&node2);
 
-    Ok(format!("Removido com sucesso!"))
+    Ok(Feedback::edge_removed())
 }
 
 fn save_graph(graph: &Graph) -> RunOptResult {
     let data = serde_json::to_string(graph).unwrap();
 
     match fs::write(Path::new(FILE_PATH), data) {
-        Ok(_) => Ok(format!("{}", "Grafo salvo com sucesso!".green())),
-        Err(_) => Err(format!("{}", "Erro ao salvar arquivo :(".red())),
+        Ok(_) => Ok(Feedback::save_graph_success()),
+        Err(_) => Err(Feedback::save_graph_error()),
     }
 }
 
@@ -154,27 +151,24 @@ fn load_graph(graph: &mut Graph) -> RunOptResult {
     let data = match fs::read_to_string(Path::new(FILE_PATH)) {
         Ok(data) => data,
         Err(_) => {
-            return Err(format!(
-                "{}",
-                "Erro ao ler arquivo, verifique se o grafo foi salvo e se o arquivo existe".red()
-            ));
+            return Err(Feedback::read_graph_file_error());
         }
     };
 
     *graph = match serde_json::from_str(&data) {
         Ok(parsed_graph) => parsed_graph,
         Err(_) => {
-            return Err(format!("{}", "Erro ao carregar grafo, verique se o arquivo não foi alterado após o grafo ter sido salvo".red()));
+            return Err(Feedback::load_graph_error());
         }
     };
 
-    Ok(format!("{}", "Grafo carregado com sucesso!".green()))
+    Ok(Feedback::load_graph_success())
 }
 
 fn read_code(graph: &Graph) -> usize {
     loop {
         show_available_nodes(graph);
-        println!("\n{}", "Digite um código:".yellow());
+        println!("{}", Feedback::read_code());
 
         let mut code = String::new();
 
@@ -183,7 +177,7 @@ fn read_code(graph: &Graph) -> usize {
         match code.trim().parse() {
             Ok(parsed_code) => break parsed_code,
             Err(_) => {
-                println!("{}", "Por favor, digite um código válido.".red());
+                println!("{}", Feedback::invalid_code());
                 continue;
             }
         };
@@ -197,10 +191,7 @@ fn read_node<'a>(graph: &'a Graph) -> Result<&'a Node, String> {
         match graph.find_by_code(code) {
             Some(node) => break Ok(node),
             None => {
-                println!(
-                    "{}",
-                    "Nenhum vértice foi encontrado com esse código, tente digitar outro...".red()
-                );
+                println!("{}", Feedback::node_not_found_with_code());
                 continue;
             }
         }
@@ -216,10 +207,7 @@ fn read_node_mut(graph: &mut Graph) -> Result<&mut Node, String> {
         match graph.find_by_code(code) {
             Some(_) => break code,
             None => {
-                println!(
-                    "{}",
-                    "Nenhum vértice foi encontrado com esse código, tente digitar outro...".red()
-                );
+                println!("{}", Feedback::node_not_found_with_code());
                 continue;
             }
         }
@@ -227,10 +215,84 @@ fn read_node_mut(graph: &mut Graph) -> Result<&mut Node, String> {
 
     Ok(graph.find_by_code_mut(code).unwrap())
 }
+
 fn show_available_nodes(graph: &Graph) {
-    println!("Vértices disponíveis:");
+    println!("{}", Feedback::available_nodes());
 
     for node in graph.nodes.iter() {
         println!("{} - {node}", node.code.to_string().magenta().bold());
+    }
+}
+
+struct Feedback;
+
+impl Feedback {
+    fn invalid_option() -> String {
+        format!(
+            "{}",
+            "Por favor, digite uma opção válida conforme o menu.".red()
+        )
+    }
+
+    fn node_not_found_with_code() -> String {
+        format!(
+            "{}",
+            "Nenhum vértice foi encontrado com esse código, tente digitar outro...".red()
+        )
+    }
+
+    fn invalid_code() -> String {
+        format!("{}", "Por favor, digite um código válido.".red())
+    }
+
+    fn nth_node(num: &str) -> String {
+        let msg = format!("* {num} vértice *");
+        format!("{}", msg.blue().bold())
+    }
+
+    fn read_code() -> String {
+        format!("\n{}", "Digite um código:".yellow())
+    }
+
+    fn available_nodes() -> String {
+        format!("Vértices disponíveis:")
+    }
+
+    fn load_graph_success() -> String {
+        format!("{}", "Grafo carregado com sucesso!".green())
+    }
+
+    fn load_graph_error() -> String {
+        format!(
+            "{}",
+            "Erro ao carregar grafo, verique se o arquivo não foi alterado após o grafo ter sido salvo".red()
+        )
+    }
+
+    fn read_graph_file_error() -> String {
+        format!(
+            "{}",
+            "Erro ao ler arquivo, verifique se o grafo foi salvo e se o arquivo existe".red()
+        )
+    }
+
+    fn save_graph_success() -> String {
+        format!("{}", "Grafo salvo com sucesso!".green())
+    }
+
+    fn save_graph_error() -> String {
+        format!("{}", "Erro ao salvar arquivo :(".red())
+    }
+
+    fn edge_removed() -> String {
+        format!("Aresta removida com sucesso")
+    }
+
+    fn adjacent_nodes(node1: &Node, node2: &Node) -> String {
+        format!("Os vértices {node1} e {node2} são adjacentes.")
+    }
+
+    fn not_adjacent_nodes(node1: &Node, node2: &Node) -> String {
+        format!("Os vértices {node1} e {node2} não são adjacentes.")
     }
 }
