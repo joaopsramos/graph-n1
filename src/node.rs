@@ -20,10 +20,7 @@ impl Node {
     }
 
     pub fn remove_edge(&mut self, node_to_remove: &Self) {
-        self.edges
-            .iter()
-            .position(|code| *code == node_to_remove.code)
-            .and_then(|index| Some(self.edges.remove(index)));
+        self.edges.retain(|code| *code != node_to_remove.code)
     }
 }
 
