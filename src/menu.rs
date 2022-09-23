@@ -99,6 +99,8 @@ fn parse_option(option: &str) -> Option<MenuOpt> {
 pub fn run_option(option: MenuOpt, graph: &mut Graph) {
     let result = match option {
         A => verify_if_two_nodes_are_adjacent(graph),
+        B => has_buckle_menu(graph),
+        E => add_edge_menu(graph),
         F => remove_edge_menu(graph),
         Save => save_graph(graph),
         Load => load_graph(graph),
@@ -125,6 +127,26 @@ fn verify_if_two_nodes_are_adjacent(graph: &Graph) -> RunOptResult {
     };
 
     Ok(result)
+}
+
+fn has_buckle_menu(graph: &mut Graph) -> RunOptResult {
+    let node = read_node(graph)?;
+    if node.has_buckle() {
+        Ok(Feedback::contains_buckle(node.code))
+    } else {
+        Ok(Feedback::no_buckle(node.code))
+    }
+}
+
+fn add_edge_menu(graph: &mut Graph) -> RunOptResult {
+    let graph_clone = &graph.clone();
+
+    let node1 = read_node_mut(graph)?;
+    let node2 = read_node(graph_clone)?;
+
+    node1.add_edge(node2.code);
+
+    Ok(Feedback::edge_added())
 }
 
 fn remove_edge_menu(graph: &mut Graph) -> RunOptResult {
@@ -282,6 +304,18 @@ impl Feedback {
 
     fn save_graph_error() -> String {
         format!("{}", "Erro ao salvar arquivo :(".red())
+    }
+
+    fn no_buckle(node: usize) -> String {
+        format!("O vértice {node} não tem um laço")
+    }
+
+    fn contains_buckle(node: usize) -> String {
+        format!("O vértice {node} tem um laço")
+    }
+
+    fn edge_added() -> String {
+        format!("Aresta criada com sucesso")
     }
 
     fn edge_removed() -> String {

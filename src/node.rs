@@ -7,7 +7,7 @@ pub struct Node {
     pub code: usize,
     pub name: String,
     pub local_type: String,
-    pub edges: Vec<usize>,
+    pub edges: Vec<usize>
 }
 
 impl Node {
@@ -21,6 +21,10 @@ impl Node {
 
     pub fn remove_edge(&mut self, node_to_remove: &Self) {
         self.edges.retain(|code| *code != node_to_remove.code)
+    }
+
+    pub fn add_edge(&mut self, edge: usize) {
+        self.edges.push(edge)
     }
 }
 
