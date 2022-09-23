@@ -100,6 +100,7 @@ pub fn run_option(option: MenuOpt, graph: &mut Graph) {
     let result = match option {
         A => verify_if_two_nodes_are_adjacent(graph),
         B => has_buckle_menu(graph),
+        C => find_path_menu(graph),
         E => add_edge_menu(graph),
         F => remove_edge_menu(graph),
         Save => save_graph(graph),
@@ -136,6 +137,25 @@ fn has_buckle_menu(graph: &mut Graph) -> RunOptResult {
     } else {
         Ok(Feedback::no_buckle(node.code))
     }
+}
+
+fn find_path_menu(graph: &mut Graph) -> RunOptResult {
+    let node1 = read_node(graph)?;
+    let node2 = read_node(graph)?;
+
+    match graph.get_path(node1, node2) {
+        Some(path) => Ok(get_string_path(path)),
+        None => return Ok(Feedback::no_path_found(node1.code, node2.code)),
+    }
+
+    // "1 -> 2 -> 3"
+
+    // Ok(Feedback::edge_added())
+}
+
+fn get_string_path(nodes: Vec<&Node>) -> String {
+    let codes = nodes.iter().map(|&x| format!("{}", x.code)).collect::<Vec<_>>();
+    format!("{}", codes.join(" -> "))
 }
 
 fn add_edge_menu(graph: &mut Graph) -> RunOptResult {
@@ -312,6 +332,10 @@ impl Feedback {
 
     fn contains_buckle(node: usize) -> String {
         format!("O vértice {node} tem um laço")
+    }
+
+    fn no_path_found(node1: usize, node2: usize) -> String {
+        format!("Não existe caminho entre o vértice {node1} e o vértice {node2}")
     }
 
     fn edge_added() -> String {
