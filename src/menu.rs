@@ -25,7 +25,10 @@ pub enum MenuOpt {
 }
 
 pub fn show_menu() {
-    println!("\n----------");
+    println!(
+        "\n{}",
+        "-------------------------------------------------------------------------------".magenta()
+    );
     println!("{}", "** Menu **".blue().bold());
     println!("{}", "Digite uma opção:".yellow());
 
@@ -57,7 +60,12 @@ pub fn show_menu() {
         "j".magenta().bold(),
         "l".magenta().bold(),
         "s".magenta().bold(),
-        "q".magenta().bold()
+        "q".magenta().bold(),
+    );
+
+    println!(
+        "{}",
+        "-------------------------------------------------------------------------------".magenta()
     );
 }
 
@@ -68,7 +76,11 @@ pub fn read_option() -> MenuOpt {
         io::stdin().read_line(&mut option).unwrap();
 
         match parse_option(&option.trim()) {
-            Some(opt) => break opt,
+            Some(opt) => {
+                // Clear input
+                print!("{}", Feedback::option_read(&option));
+                break opt;
+            }
             None => {
                 println!("{}", Feedback::invalid_option());
                 continue;
@@ -112,10 +124,12 @@ pub fn run_option(option: MenuOpt, graph: &mut Graph) {
 }
 
 fn verify_if_two_nodes_are_adjacent(graph: &Graph) -> RunOptResult {
-    Feedback::nth_node("Primeiro");
+    show_available_nodes(graph);
+
+    println!("{}", Feedback::nth_node("Primeiro"));
     let node1 = read_node(graph)?;
 
-    Feedback::nth_node("Segundo");
+    println!("{}", Feedback::nth_node("Segundo"));
     let node2 = read_node(graph)?;
 
     let result = if node1.is_adjacent(node2) {
@@ -128,9 +142,14 @@ fn verify_if_two_nodes_are_adjacent(graph: &Graph) -> RunOptResult {
 }
 
 fn remove_edge_menu(graph: &mut Graph) -> RunOptResult {
+    show_available_nodes(graph);
+
     let graph_clone = &graph.clone();
 
+    println!("{}", Feedback::nth_node("Primeiro"));
     let node1 = read_node_mut(graph)?;
+
+    println!("{}", Feedback::nth_node("Segundo"));
     let node2 = read_node(graph_clone)?;
 
     node1.remove_edge(&node2);
@@ -165,9 +184,8 @@ fn load_graph(graph: &mut Graph) -> RunOptResult {
     Ok(Feedback::load_graph_success())
 }
 
-fn read_code(graph: &Graph) -> usize {
+fn read_code() -> usize {
     loop {
-        show_available_nodes(graph);
         println!("{}", Feedback::read_code());
 
         let mut code = String::new();
@@ -186,10 +204,14 @@ fn read_code(graph: &Graph) -> usize {
 
 fn read_node<'a>(graph: &'a Graph) -> Result<&'a Node, String> {
     loop {
-        let code = read_code(graph);
+        let code = read_code();
 
         match graph.find_by_code(code) {
-            Some(node) => break Ok(node),
+            Some(node) => {
+                println!("{}", Feedback::code_read(code));
+                print!("\n");
+                break Ok(node);
+            }
             None => {
                 println!("{}", Feedback::node_not_found_with_code());
                 continue;
@@ -199,13 +221,14 @@ fn read_node<'a>(graph: &'a Graph) -> Result<&'a Node, String> {
 }
 
 fn read_node_mut(graph: &mut Graph) -> Result<&mut Node, String> {
-    let graph_clone = graph.clone();
-
     let code = loop {
-        let code = read_code(&graph_clone);
+        let code = read_code();
 
         match graph.find_by_code(code) {
-            Some(_) => break code,
+            Some(_) => {
+                println!("{}", Feedback::code_read(code));
+                break code;
+            }
             None => {
                 println!("{}", Feedback::node_not_found_with_code());
                 continue;
@@ -222,11 +245,27 @@ fn show_available_nodes(graph: &Graph) {
     for node in graph.nodes.iter() {
         println!("{} - {node}", node.code.to_string().magenta().bold());
     }
+
+    print!("\n");
 }
 
 struct Feedback;
 
 impl Feedback {
+    fn clear_line() {
+        print!("\u{1b}[1F");
+    }
+
+    fn option_read(opt: &str) -> String {
+        Self::clear_line();
+        format!("Opção digitada: {}", opt.magenta())
+    }
+
+    fn code_read(code: usize) -> String {
+        Self::clear_line();
+        format!("Código digitado: {}", code.to_string().magenta())
+    }
+
     fn invalid_option() -> String {
         format!(
             "{}",
@@ -251,7 +290,7 @@ impl Feedback {
     }
 
     fn read_code() -> String {
-        format!("\n{}", "Digite um código:".yellow())
+        format!("{}", "Digite um código:".yellow())
     }
 
     fn available_nodes() -> String {
