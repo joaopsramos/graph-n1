@@ -51,6 +51,53 @@ impl Graph {
         return None;
     }
 
+    pub fn is_cycle(codes: &Vec<usize>) -> bool {
+        if codes.len() <= 2 || codes.first().unwrap() != codes.last().unwrap() {
+            return false;
+        }
+
+        let mut unique_codes = codes.clone();
+        unique_codes.sort_unstable();
+        unique_codes.dedup();
+
+        // The +1 here is because the first and last elements must be equal,
+        // so it's removed on dedup
+        if codes.len() != unique_codes.len() + 1 {
+            return false;
+        }
+
+        return true;
+    }
+
+    pub fn get_cycle(&self, codes: &Vec<usize>) -> Option<Vec<&Node>> {
+        if !Self::is_cycle(&codes) {
+            return None;
+        }
+
+        let mut cycle = Vec::new();
+        let mut codes_iter = codes.iter();
+
+        let first_node = match self.find_by_code(*codes_iter.next().unwrap()) {
+            Some(node) => node,
+            None => return None,
+        };
+
+        cycle.push(first_node);
+
+        let mut current_node = first_node;
+
+        while let Some(code) = codes_iter.next() {
+            if !current_node.edges.contains(code) {
+                return None;
+            }
+
+            current_node = self.find_by_code(*code).unwrap();
+            cycle.push(current_node);
+        }
+
+        Some(cycle)
+    }
+
     pub fn format_path(nodes: Vec<Node>) -> Option<String> {
         let mut v_iter = nodes.iter();
 

@@ -7,7 +7,7 @@ use colored::*;
 use std::io;
 use std::str::FromStr;
 
-const GRAPH_SIZE: usize = 2;
+const GRAPH_SIZE: usize = 4;
 
 fn main() {
     let mut graph = Graph {
