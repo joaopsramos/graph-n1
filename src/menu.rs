@@ -154,8 +154,11 @@ fn find_path_menu(graph: &mut Graph) -> RunOptResult {
 }
 
 fn get_string_path(nodes: Vec<&Node>) -> String {
-    let codes = nodes.iter().map(|&x| format!("{}", x.code)).collect::<Vec<_>>();
-    format!("{}", codes.join(" -> "))
+    nodes
+        .iter()
+        .map(|x| x.code.to_string())
+        .collect::<Vec<_>>()
+        .join(" -> ")
 }
 
 fn add_edge_menu(graph: &mut Graph) -> RunOptResult {
