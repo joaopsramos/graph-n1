@@ -178,19 +178,12 @@ fn get_string_path(nodes: Vec<&Node>) -> String {
 fn add_edge_menu(graph: &mut Graph) -> RunOptResult {
     let mut graph_clone = graph.clone();
 
-    let node1 = read_node_mut(graph)?;
-    let node2 = read_node_mut(&mut graph_clone)?;
+    let node1 = read_node(graph)?;
+    let node2 = read_node(graph)?;
+    
+    graph.add_edge(node1.code, node2.code);
 
-    if node1.edges.contains(&node2.code) {
-        return Err(Feedback::edge_already_exists());
-    } 
-
-    node1.add_edge(node2.code);
-    let node1 = node1.clone();
-    let node2 = graph.find_by_code_mut(node2.code).unwrap();
-    node2.add_edge(node1.code);
-
-    Ok(Feedback::edge_added())    
+    Ok(Feedback::edge_added())
 }
 
 fn remove_edge_menu(graph: &mut Graph) -> RunOptResult {

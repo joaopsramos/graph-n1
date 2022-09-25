@@ -22,10 +22,6 @@ impl Node {
     pub fn remove_edge(&mut self, node_to_remove: &Self) {
         self.edges.retain(|code| *code != node_to_remove.code)
     }
-
-    pub fn add_edge(&mut self, edge: usize) {
-        self.edges.push(edge)
-    }
 }
 
 impl Display for Node {
