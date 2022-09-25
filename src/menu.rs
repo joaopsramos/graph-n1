@@ -1,4 +1,4 @@
-use crate::{graph::Graph, node::Node};
+use crate::{graph::Graph, node::{Node, self}};
 use colored::Colorize;
 use std::{fs, io, path::Path};
 use MenuOpt::*;
@@ -176,28 +176,42 @@ fn get_string_path(nodes: Vec<&Node>) -> String {
 }
 
 fn add_edge_menu(graph: &mut Graph) -> RunOptResult {
-    let graph_clone = &graph.clone();
+    let mut graph_clone = graph.clone();
 
     let node1 = read_node_mut(graph)?;
-    let node2 = read_node(graph_clone)?;
+    let node2 = read_node_mut(&mut graph_clone)?;
+
+    if node1.edges.contains(&node2.code) {
+        return Err(Feedback::edge_already_exists());
+    } 
 
     node1.add_edge(node2.code);
+    let node1 = node1.clone();
+    let node2 = graph.find_by_code_mut(node2.code).unwrap();
+    node2.add_edge(node1.code);
 
-    Ok(Feedback::edge_added())
+    Ok(Feedback::edge_added())    
 }
 
 fn remove_edge_menu(graph: &mut Graph) -> RunOptResult {
     println!("{}", format_available_nodes(graph));
 
-    let graph_clone = &graph.clone();
+    let mut graph_clone = graph.clone();
 
     println!("{}", Feedback::nth_node("Primeiro"));
     let node1 = read_node_mut(graph)?;
 
     println!("{}", Feedback::nth_node("Segundo"));
-    let node2 = read_node(graph_clone)?;
+    let node2 = read_node_mut(&mut graph_clone)?;
+
+    if !node1.edges.contains(&node2.code) {
+        return  Err(Feedback::edge_dont_exists());
+    }
 
     node1.remove_edge(&node2);
+    let node1 = node1.clone();
+    let node2 = graph.find_by_code_mut(node2.code).unwrap();
+    node2.remove_edge(&node1);
 
     Ok(Feedback::edge_removed())
 }
@@ -400,5 +414,13 @@ impl Feedback {
 
     fn not_adjacent_nodes(node1: &Node, node2: &Node) -> String {
         format!("Os vértices {node1} e {node2} não são adjacentes.")
+    }
+
+    fn edge_already_exists() -> String {
+        format!("Aresta já existe")
+    }
+
+    fn edge_dont_exists() -> String {
+        format!("Não existe nenhuma aresta")
     }
 }
