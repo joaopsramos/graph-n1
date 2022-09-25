@@ -73,19 +73,17 @@ impl Graph {
     }
 
     pub fn add_edge(&mut self, edge1: usize, edge2: usize) -> Result<(), GraphError> {
-        let mut self_clone = self.clone();
-
         let node1 = self.find_by_code_mut(edge1).unwrap();
-        let node2 = self_clone.find_by_code_mut(edge2).unwrap();
 
-        if node1.edges.contains(&node2.code) {
+        if node1.edges.contains(&edge2) {
             return Err(GraphError::EdgeAlreadyExists);
         }
 
-        node1.edges.push(node2.code);
-        let node1 = node1.clone();
+        node1.edges.push(edge2);
+
         let node2 = self.find_by_code_mut(edge2).unwrap();
-        node2.edges.push(node1.code);
+
+        node2.edges.push(edge1);
 
         Ok(())
     }

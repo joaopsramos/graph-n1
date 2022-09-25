@@ -1,4 +1,4 @@
-use crate::{graph::Graph, node::{Node, self}};
+use crate::{graph::Graph, node::Node};
 use colored::Colorize;
 use std::{fs, io, path::Path};
 use MenuOpt::*;
@@ -178,11 +178,11 @@ fn get_string_path(nodes: Vec<&Node>) -> String {
 fn add_edge_menu(graph: &mut Graph) -> RunOptResult {
     let node1 = read_node(graph)?;
     let node2 = read_node(graph)?;
-    
+
     match graph.add_edge(node1.code, node2.code) {
-        Ok(_)=> Ok(Feedback::edge_added()), 
-        Err(_) => Err(Feedback::edge_already_exists())
-    } 
+        Ok(_) => Ok(Feedback::edge_added()),
+        Err(_) => Err(Feedback::edge_already_exists()),
+    }
 }
 
 fn remove_edge_menu(graph: &mut Graph) -> RunOptResult {
@@ -197,7 +197,7 @@ fn remove_edge_menu(graph: &mut Graph) -> RunOptResult {
     let node2 = read_node_mut(&mut graph_clone)?;
 
     if !node1.edges.contains(&node2.code) {
-        return  Err(Feedback::edge_dont_exists());
+        return Err(Feedback::edge_dont_exists());
     }
 
     node1.remove_edge(&node2);
