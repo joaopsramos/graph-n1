@@ -176,14 +176,13 @@ fn get_string_path(nodes: Vec<&Node>) -> String {
 }
 
 fn add_edge_menu(graph: &mut Graph) -> RunOptResult {
-    let mut graph_clone = graph.clone();
-
     let node1 = read_node(graph)?;
     let node2 = read_node(graph)?;
     
-    graph.add_edge(node1.code, node2.code);
-
-    Ok(Feedback::edge_added())
+    match graph.add_edge(node1.code, node2.code) {
+        Ok(_)=> Ok(Feedback::edge_added()), 
+        Err(_) => Err(Feedback::edge_already_exists())
+    } 
 }
 
 fn remove_edge_menu(graph: &mut Graph) -> RunOptResult {
