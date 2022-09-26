@@ -2,11 +2,13 @@ mod graph;
 mod menu;
 mod node;
 
-use crate::{graph::*, menu::MenuOpt, node::*};
+use crate::{
+    graph::*,
+    menu::{MenuOpt, FILE_PATH},
+    node::*,
+};
 use colored::*;
-use menu::FILE_PATH;
-use std::str::FromStr;
-use std::{fs, io, path::Path};
+use std::{fs, io, path::Path, str::FromStr};
 
 const GRAPH_SIZE: usize = 2;
 
