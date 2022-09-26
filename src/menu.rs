@@ -20,6 +20,7 @@ pub enum MenuOpt {
     I,
     J,
     Load,
+    Visualize,
     Save,
     Exit,
 }
@@ -46,6 +47,7 @@ pub fn show_menu() {
 {}) Calcular o custo do caminho entre dois vértices informados
 ---
 {}) Carregar grafo salvo
+{}) Visualizar grafo atual
 {}) Salvar grafo atual
 {}) Encerrar",
         "a".magenta().bold(),
@@ -59,6 +61,7 @@ pub fn show_menu() {
         "i".magenta().bold(),
         "j".magenta().bold(),
         "l".magenta().bold(),
+        "v".magenta().bold(),
         "s".magenta().bold(),
         "q".magenta().bold(),
     );
@@ -102,6 +105,7 @@ fn parse_option(option: &str) -> Option<MenuOpt> {
         "i" => Some(I),
         "j" => Some(J),
         "l" => Some(Load),
+        "v" => Some(Visualize),
         "s" => Some(Save),
         "q" => Some(Exit),
         _ => None,
@@ -116,6 +120,7 @@ pub fn run_option(option: MenuOpt, graph: &mut Graph) {
         E => add_edge_menu(graph),
         F => remove_edge_menu(graph),
         Save => save_graph(graph),
+        Visualize => show_graph(graph),
         Load => load_graph(graph),
         _ => Ok(format!("i")),
     };
@@ -188,24 +193,16 @@ fn add_edge_menu(graph: &mut Graph) -> RunOptResult {
 fn remove_edge_menu(graph: &mut Graph) -> RunOptResult {
     println!("{}", format_available_nodes(graph));
 
-    let mut graph_clone = graph.clone();
-
     println!("{}", Feedback::nth_node("Primeiro"));
-    let node1 = read_node_mut(graph)?;
+    let node1 = read_node(graph)?;
 
     println!("{}", Feedback::nth_node("Segundo"));
-    let node2 = read_node_mut(&mut graph_clone)?;
+    let node2 = read_node(graph)?;
 
-    if !node1.edges.contains(&node2.code) {
-        return Err(Feedback::edge_dont_exists());
+    match graph.remove_edge(node1.code, node2.code) {
+        Ok(_) => Ok(Feedback::edge_removed()),
+        Err(_) => Err(Feedback::edge_dont_exists()),
     }
-
-    node1.remove_edge(&node2);
-    let node1 = node1.clone();
-    let node2 = graph.find_by_code_mut(node2.code).unwrap();
-    node2.remove_edge(&node1);
-
-    Ok(Feedback::edge_removed())
 }
 
 fn save_graph(graph: &Graph) -> RunOptResult {
@@ -235,6 +232,10 @@ fn load_graph(graph: &mut Graph) -> RunOptResult {
     println!("{}\n", Feedback::load_graph_success());
 
     Ok(format_available_nodes(graph))
+}
+
+fn show_graph(graph: &Graph) ->RunOptResult {
+    Ok(format_available_nodes(graph))    
 }
 
 fn read_code() -> usize {

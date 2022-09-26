@@ -18,10 +18,6 @@ impl Node {
     pub fn has_buckle(&self) -> bool {
         self.edges.contains(&self.code)
     }
-
-    pub fn remove_edge(&mut self, node_to_remove: &Self) {
-        self.edges.retain(|code| *code != node_to_remove.code)
-    }
 }
 
 impl Display for Node {

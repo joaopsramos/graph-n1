@@ -1,4 +1,4 @@
-use crate::node::Node;
+use crate::node::{Node, self};
 use serde::{Deserialize, Serialize};
 
 pub enum GraphError {
@@ -87,4 +87,21 @@ impl Graph {
 
         Ok(())
     }
+
+    pub fn remove_edge(&mut self, edge1: usize, edge2: usize) ->Result<(), GraphError> {
+        let node1 = self.find_by_code_mut(edge1).unwrap();
+
+        if !node1.edges.contains(&edge2) {
+            return Err(GraphError::EdgeDontExists);
+        }
+
+        node1.edges.retain(|code| *code != edge2);
+
+        let node2 = self.find_by_code_mut(edge2).unwrap();
+
+        node2.edges.retain(|code| *code != edge1);
+
+        Ok(())
+    }
+
 }
