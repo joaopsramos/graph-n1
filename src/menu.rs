@@ -5,7 +5,7 @@ use MenuOpt::*;
 
 type RunOptResult = Result<String, String>;
 
-const FILE_PATH: &str = "./graph.json";
+pub const FILE_PATH: &str = "./graph.json";
 
 #[derive(PartialEq)]
 pub enum MenuOpt {
@@ -24,6 +24,31 @@ pub enum MenuOpt {
     Save,
     Exit,
 }
+
+pub fn show_menu_load_graph() {
+    println!(
+        "\n{}",
+        "-------------------------------------------------------------------------------".magenta()
+    );
+    println!("{}", "** Menu **".blue().bold());
+    println!("{}", "Detectamos um grafo existente, desja carrega-lo?".yellow());
+    
+    println!(
+        "\
+{}) Sim
+{}) Não
+{}) Encerrar",
+        "l".magenta().bold(),
+        "n".magenta().bold(),
+        "q".magenta().bold(),
+    );
+
+    println!(
+        "{}",
+        "-------------------------------------------------------------------------------".magenta()
+    );
+}
+
 
 pub fn show_menu() {
     println!(
