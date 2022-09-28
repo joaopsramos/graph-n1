@@ -5,7 +5,7 @@ use MenuOpt::*;
 
 type RunOptResult = Result<String, String>;
 
-const FILE_PATH: &str = "./graph.json";
+pub const FILE_PATH: &str = "./graph.json";
 
 #[derive(PartialEq)]
 pub enum MenuOpt {
@@ -20,8 +20,36 @@ pub enum MenuOpt {
     I,
     J,
     Load,
+    Visualize,
     Save,
     Exit,
+}
+
+pub fn show_menu_load_graph() {
+    println!(
+        "\n{}",
+        "-------------------------------------------------------------------------------".magenta()
+    );
+    println!("{}", "** Menu **".blue().bold());
+    println!(
+        "{}",
+        "Detectamos um grafo existente, desja carrega-lo?".yellow()
+    );
+
+    println!(
+        "\
+{}) Sim
+{}) Não
+{}) Encerrar",
+        "l".magenta().bold(),
+        "n".magenta().bold(),
+        "q".magenta().bold(),
+    );
+
+    println!(
+        "{}",
+        "-------------------------------------------------------------------------------".magenta()
+    );
 }
 
 pub fn show_menu() {
@@ -46,6 +74,7 @@ pub fn show_menu() {
 {}) Calcular o custo do caminho entre dois vértices informados
 ---
 {}) Carregar grafo salvo
+{}) Visualizar grafo atual
 {}) Salvar grafo atual
 {}) Encerrar",
         "a".magenta().bold(),
@@ -59,6 +88,7 @@ pub fn show_menu() {
         "i".magenta().bold(),
         "j".magenta().bold(),
         "l".magenta().bold(),
+        "v".magenta().bold(),
         "s".magenta().bold(),
         "q".magenta().bold(),
     );
@@ -102,6 +132,7 @@ fn parse_option(option: &str) -> Option<MenuOpt> {
         "i" => Some(I),
         "j" => Some(J),
         "l" => Some(Load),
+        "v" => Some(Visualize),
         "s" => Some(Save),
         "q" => Some(Exit),
         _ => None,
@@ -117,6 +148,7 @@ pub fn run_option(option: MenuOpt, graph: &mut Graph) {
         E => add_edge_menu(graph),
         F => remove_edge_menu(graph),
         Save => save_graph(graph),
+        Visualize => show_graph(graph),
         Load => load_graph(graph),
         _ => Ok(format!("i")),
     };
@@ -137,9 +169,9 @@ fn verify_if_two_nodes_are_adjacent(graph: &Graph) -> RunOptResult {
     let node2 = read_node(graph)?;
 
     let result = if node1.is_adjacent(node2) {
-        Feedback::adjacent_nodes(node1, node2)
+        Feedback::adjacent_nodes(node1.code, node2.code)
     } else {
-        Feedback::not_adjacent_nodes(node1, node2)
+        Feedback::not_adjacent_nodes(node1.code, node2.code)
     };
 
     Ok(result)
@@ -187,30 +219,33 @@ fn get_string_path(nodes: Vec<&Node>) -> String {
 }
 
 fn add_edge_menu(graph: &mut Graph) -> RunOptResult {
-    let graph_clone = &graph.clone();
+    println!("{}\n", format_available_nodes(graph));
 
-    let node1 = read_node_mut(graph)?;
-    let node2 = read_node(graph_clone)?;
+    println!("{}", Feedback::nth_node("Primeiro"));
+    let code1 = read_node(graph)?.code;
 
-    node1.add_edge(node2.code);
+    println!("{}", Feedback::nth_node("Segundo"));
+    let code2 = read_node(graph)?.code;
 
-    Ok(Feedback::edge_added())
+    match graph.add_edge(code1, code2) {
+        Ok(_) => Ok(Feedback::edge_added(code1, code2)),
+        Err(_) => Err(Feedback::edge_already_exists()),
+    }
 }
 
 fn remove_edge_menu(graph: &mut Graph) -> RunOptResult {
-    println!("{}", format_available_nodes(graph));
-
-    let graph_clone = &graph.clone();
+    println!("{}\n", format_available_nodes(graph));
 
     println!("{}", Feedback::nth_node("Primeiro"));
-    let node1 = read_node_mut(graph)?;
+    let code1 = read_node(graph)?.code;
 
     println!("{}", Feedback::nth_node("Segundo"));
-    let node2 = read_node(graph_clone)?;
+    let code2 = read_node(graph)?.code;
 
-    node1.remove_edge(&node2);
-
-    Ok(Feedback::edge_removed())
+    match graph.remove_edge(code1, code2) {
+        Ok(_) => Ok(Feedback::edge_removed(code1, code2)),
+        Err(_) => Err(Feedback::edge_dont_exists()),
+    }
 }
 
 fn save_graph(graph: &Graph) -> RunOptResult {
@@ -239,6 +274,10 @@ fn load_graph(graph: &mut Graph) -> RunOptResult {
 
     println!("{}\n", Feedback::load_graph_success());
 
+    Ok(format_available_nodes(graph))
+}
+
+fn show_graph(graph: &Graph) -> RunOptResult {
     Ok(format_available_nodes(graph))
 }
 
@@ -302,25 +341,6 @@ fn read_node<'a>(graph: &'a Graph) -> Result<&'a Node, String> {
             }
         }
     }
-}
-
-fn read_node_mut(graph: &mut Graph) -> Result<&mut Node, String> {
-    let code = loop {
-        let code = read_code();
-
-        match graph.find_by_code(code) {
-            Some(_) => {
-                println!("{}", Feedback::code_read(code));
-                break code;
-            }
-            None => {
-                println!("{}", Feedback::node_not_found_with_code());
-                continue;
-            }
-        }
-    };
-
-    Ok(graph.find_by_code_mut(code).unwrap())
 }
 
 fn format_available_nodes(graph: &Graph) -> String {
@@ -426,35 +446,56 @@ impl Feedback {
         format!("{}", "Erro ao salvar arquivo :(".red())
     }
 
-    fn no_buckle(node: usize) -> String {
-        format!("O vértice {node} não tem um laço")
+    fn no_buckle(edge: usize) -> String {
+        format!("O vértice {edge} não tem um laço")
     }
 
-    fn contains_buckle(node: usize) -> String {
-        format!("O vértice {node} tem um laço")
+    fn contains_buckle(edge: usize) -> String {
+        format!("O vértice {edge} tem um laço")
     }
 
-    fn no_path_found(node1: usize, node2: usize) -> String {
-        format!("Não existe caminho entre o vértice {node1} e o vértice {node2}")
+    fn no_path_found(edge1: usize, edge2: usize) -> String {
+        format!("Não existe caminho entre o vértice {edge1} e o vértice {edge2}")
+    }
+
+    fn edge_added(edge1: usize, edge2: usize) -> String {
+        format!(
+            "{}\n{}",
+            "Aresta criada com sucesso".green(),
+            Self::format_edge(edge1, edge2)
+        )
+    }
+
+    fn edge_removed(edge1: usize, edge2: usize) -> String {
+        format!(
+            "{} {} {}",
+            "Aresta".green(),
+            Self::format_edge(edge1, edge2),
+            "removida com sucesso".green()
+        )
+    }
+
+    fn adjacent_nodes(edge1: usize, edge2: usize) -> String {
+        format!("Os vértices {edge1} e {edge2} são adjacentes.")
     }
 
     fn no_cycle_found() -> String {
         format!("{}", "Ciclo não encontrado")
     }
-
-    fn edge_added() -> String {
-        format!("Aresta criada com sucesso")
+    
+    fn not_adjacent_nodes(edge1: usize, edge2: usize) -> String {
+        format!("Os vértices {edge1} e {edge2} não são adjacentes.")
     }
 
-    fn edge_removed() -> String {
-        format!("Aresta removida com sucesso")
+    fn edge_already_exists() -> String {
+        format!("{}", "Aresta já existe".red())
     }
 
-    fn adjacent_nodes(node1: &Node, node2: &Node) -> String {
-        format!("Os vértices {node1} e {node2} são adjacentes.")
+    fn edge_dont_exists() -> String {
+        format!("Não existe nenhuma aresta")
     }
 
-    fn not_adjacent_nodes(node1: &Node, node2: &Node) -> String {
-        format!("Os vértices {node1} e {node2} não são adjacentes.")
+    fn format_edge(edge1: usize, edge2: usize) -> String {
+        format!("{edge1} <-> {edge2}")
     }
 }

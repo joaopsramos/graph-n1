@@ -2,10 +2,13 @@ mod graph;
 mod menu;
 mod node;
 
-use crate::{graph::*, menu::MenuOpt, node::*};
+use crate::{
+    graph::*,
+    menu::{MenuOpt, FILE_PATH},
+    node::*,
+};
 use colored::*;
-use std::io;
-use std::str::FromStr;
+use std::{fs, io, path::Path, str::FromStr};
 
 const GRAPH_SIZE: usize = 4;
 
@@ -15,6 +18,24 @@ fn main() {
         nodes: Vec::new(),
     };
     // let mut graph = init_nodes();
+
+    // loop {
+    //     let has_data = match fs::read_to_string(Path::new(FILE_PATH)) {
+    //         Ok(data) => !data.is_empty(),
+    //         Err(_) => false,
+    //     };
+
+    //     menu::show_menu_load_graph();
+
+    //     let option = menu::read_option();
+
+    //     if option == MenuOpt::Exit {
+    //         println!("Encerrando...");
+    //         break;
+    //     }
+
+    //     menu::run_option(option, &mut graph);
+    // }
 
     loop {
         menu::show_menu();

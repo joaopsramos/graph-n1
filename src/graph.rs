@@ -1,6 +1,12 @@
 use crate::node::Node;
 use serde::{Deserialize, Serialize};
 
+pub enum GraphError {
+    NodeNotFound,
+    EdgeAlreadyExists,
+    EdgeDontExists,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Graph {
     pub size: usize,
@@ -111,5 +117,38 @@ impl Graph {
         }
 
         Some(result)
+    }
+
+    pub fn add_edge(&mut self, edge1: usize, edge2: usize) -> Result<(), GraphError> {
+        let node1 = self.find_by_code_mut(edge1).unwrap();
+
+        if node1.edges.contains(&edge2) {
+            return Err(GraphError::EdgeAlreadyExists);
+        }
+
+        node1.edges.push(edge2);
+
+        if edge1 != edge2 {
+            let node2 = self.find_by_code_mut(edge2).unwrap();
+            node2.edges.push(edge1);
+        }
+
+        Ok(())
+    }
+
+    pub fn remove_edge(&mut self, edge1: usize, edge2: usize) -> Result<(), GraphError> {
+        let node1 = self.find_by_code_mut(edge1).unwrap();
+
+        if !node1.edges.contains(&edge2) {
+            return Err(GraphError::EdgeDontExists);
+        }
+
+        node1.edges.retain(|code| *code != edge2);
+
+        let node2 = self.find_by_code_mut(edge2).unwrap();
+
+        node2.edges.retain(|code| *code != edge1);
+
+        Ok(())
     }
 }
