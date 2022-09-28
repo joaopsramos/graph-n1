@@ -10,7 +10,7 @@ use crate::{
 use colored::*;
 use std::{fs, io, path::Path, str::FromStr};
 
-const GRAPH_SIZE: usize = 2;
+const GRAPH_SIZE: usize = 4;
 
 fn main() {
     let mut graph = Graph {

@@ -1,1 +1,1 @@
-{"size":2,"nodes":[{"code":1,"name":"cantina","local_type":"restaurante","edges":[1,2]},{"code":2,"name":"predio 1","local_type":"academico","edges":[1]}]}
+{"size":2,"nodes":[{"code":1,"name":"cantina","local_type":"restaurante","edges":[2]},{"code":2,"name":"predio 1","local_type":"academico","edges":[3,4]},{"code":3,"name":"predio 2","local_type":"academico","edges":[2,4]},{"code":4,"name":"cozinha","local_type":"restaurante","edges":[2,3]}]}

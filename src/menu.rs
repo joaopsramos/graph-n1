@@ -144,6 +144,7 @@ pub fn run_option(option: MenuOpt, graph: &mut Graph) {
         A => verify_if_two_nodes_are_adjacent(graph),
         B => has_buckle_menu(graph),
         C => find_path_menu(graph),
+        D => find_and_show_cycle(graph),
         E => add_edge_menu(graph),
         F => remove_edge_menu(graph),
         Save => save_graph(graph),
@@ -197,6 +198,16 @@ fn find_path_menu(graph: &mut Graph) -> RunOptResult {
     // "1 -> 2 -> 3"
 
     // Ok(Feedback::edge_added())
+}
+
+fn find_and_show_cycle(graph: &Graph) -> RunOptResult {
+    let codes = read_cycle();
+    print!("\n");
+
+    match graph.get_cycle(&codes) {
+        Some(cycle) => Ok(get_string_path(cycle)),
+        None => return Ok(Feedback::no_cycle_found()),
+    }
 }
 
 fn get_string_path(nodes: Vec<&Node>) -> String {
@@ -288,6 +299,32 @@ fn read_code() -> usize {
     }
 }
 
+fn read_cycle() -> Vec<usize> {
+    loop {
+        println!("{}", Feedback::read_codes());
+
+        let mut codes = String::new();
+
+        io::stdin().read_line(&mut codes).unwrap();
+
+        let codes_iter = codes.trim().split(",").map(|c| c.trim().parse::<usize>());
+
+        if codes_iter.clone().any(|c| c.is_err()) {
+            println!("{}", Feedback::invalid_codes());
+            continue;
+        }
+
+        let codes = codes_iter.map(|c| c.unwrap()).collect();
+
+        if !Graph::is_cycle(&codes) {
+            println!("{}", Feedback::invalid_cycle());
+            continue;
+        }
+
+        break codes;
+    }
+}
+
 fn read_node<'a>(graph: &'a Graph) -> Result<&'a Node, String> {
     loop {
         let code = read_code();
@@ -364,6 +401,21 @@ impl Feedback {
         format!("{}", "Digite um código:".yellow())
     }
 
+    fn read_codes() -> String {
+        format!("{}", "Digite os códigos separados por virgula:".yellow())
+    }
+
+    fn invalid_codes() -> String {
+        format!(
+            "{}",
+            "Erro ao ler os códigos, eles devem ser inteiros separados por vírgula".red()
+        )
+    }
+
+    fn invalid_cycle() -> String {
+        format!("{}", "Certifique-se de digitar um ciclo válido, o primeiro e o último elemento precisam ser iguais, e não pode haver elementos repetidos entre eles".red())
+    }
+
     fn available_nodes() -> String {
         format!("Vértices disponíveis:")
     }
@@ -427,6 +479,10 @@ impl Feedback {
         format!("Os vértices {edge1} e {edge2} são adjacentes.")
     }
 
+    fn no_cycle_found() -> String {
+        format!("{}", "Ciclo não encontrado")
+    }
+    
     fn not_adjacent_nodes(edge1: usize, edge2: usize) -> String {
         format!("Os vértices {edge1} e {edge2} não são adjacentes.")
     }
