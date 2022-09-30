@@ -19,6 +19,7 @@ pub enum MenuOpt {
     H,
     I,
     J,
+    No,
     Load,
     Visualize,
     Save,
@@ -41,7 +42,7 @@ pub fn show_menu_load_graph() {
 {}) Sim
 {}) Não
 {}) Encerrar",
-        "l".magenta().bold(),
+        "s".magenta().bold(),
         "n".magenta().bold(),
         "q".magenta().bold(),
     );
@@ -73,7 +74,6 @@ pub fn show_menu() {
 {}) Verificar se o grafo é completo
 {}) Calcular o custo do caminho entre dois vértices informados
 ---
-{}) Carregar grafo salvo
 {}) Visualizar grafo atual
 {}) Salvar grafo atual
 {}) Encerrar",
@@ -87,7 +87,6 @@ pub fn show_menu() {
         "h".magenta().bold(),
         "i".magenta().bold(),
         "j".magenta().bold(),
-        "l".magenta().bold(),
         "v".magenta().bold(),
         "s".magenta().bold(),
         "q".magenta().bold(),
@@ -131,6 +130,7 @@ fn parse_option(option: &str) -> Option<MenuOpt> {
         "h" => Some(H),
         "i" => Some(I),
         "j" => Some(J),
+        "n" => Some(No),
         "l" => Some(Load),
         "v" => Some(Visualize),
         "s" => Some(Save),
@@ -149,7 +149,6 @@ pub fn run_option(option: MenuOpt, graph: &mut Graph) {
         F => remove_edge_menu(graph),
         Save => save_graph(graph),
         Visualize => show_graph(graph),
-        Load => load_graph(graph),
         _ => Ok(format!("i")),
     };
 
@@ -178,6 +177,7 @@ fn verify_if_two_nodes_are_adjacent(graph: &Graph) -> RunOptResult {
 }
 
 fn has_buckle_menu(graph: &mut Graph) -> RunOptResult {
+    println!("{}", format_available_nodes(graph));
     let node = read_node(graph)?;
     if node.has_buckle() {
         Ok(Feedback::contains_buckle(node.code))
@@ -213,9 +213,9 @@ fn find_and_show_cycle(graph: &Graph) -> RunOptResult {
 fn get_string_path(nodes: Vec<&Node>) -> String {
     nodes
         .iter()
-        .map(|x| x.code.to_string())
+        .map(|x| format!("[{}] {}", x.code.to_string(), x.name))
         .collect::<Vec<_>>()
-        .join(" -> ")
+        .join(" <-> ")
 }
 
 fn add_edge_menu(graph: &mut Graph) -> RunOptResult {
@@ -257,24 +257,16 @@ fn save_graph(graph: &Graph) -> RunOptResult {
     }
 }
 
-fn load_graph(graph: &mut Graph) -> RunOptResult {
+pub fn load_graph() -> Option<Graph> {
     let data = match fs::read_to_string(Path::new(FILE_PATH)) {
         Ok(data) => data,
-        Err(_) => {
-            return Err(Feedback::read_graph_file_error());
-        }
+        Err(_) => return None,
     };
 
-    *graph = match serde_json::from_str(&data) {
+    match serde_json::from_str(&data) {
         Ok(parsed_graph) => parsed_graph,
-        Err(_) => {
-            return Err(Feedback::load_graph_error());
-        }
-    };
-
-    println!("{}\n", Feedback::load_graph_success());
-
-    Ok(format_available_nodes(graph))
+        Err(_) => None,
+    }
 }
 
 fn show_graph(graph: &Graph) -> RunOptResult {
@@ -357,108 +349,108 @@ fn format_available_nodes(graph: &Graph) -> String {
     string
 }
 
-struct Feedback;
+pub struct Feedback;
 
 impl Feedback {
-    fn clear_line() {
+    pub fn clear_line() {
         print!("\u{1b}[1F");
     }
 
-    fn option_read(opt: &str) -> String {
+    pub fn option_read(opt: &str) -> String {
         Self::clear_line();
         format!("Opção digitada: {}", opt.magenta())
     }
 
-    fn code_read(code: usize) -> String {
+    pub fn code_read(code: usize) -> String {
         Self::clear_line();
         format!("Código digitado: {}", code.to_string().magenta())
     }
 
-    fn invalid_option() -> String {
+    pub fn invalid_option() -> String {
         format!(
             "{}",
             "Por favor, digite uma opção válida conforme o menu.".red()
         )
     }
 
-    fn node_not_found_with_code() -> String {
+    pub fn node_not_found_with_code() -> String {
         format!(
             "{}",
             "Nenhum vértice foi encontrado com esse código, tente digitar outro...".red()
         )
     }
 
-    fn invalid_code() -> String {
+    pub fn invalid_code() -> String {
         format!("{}", "Por favor, digite um código válido.".red())
     }
 
-    fn nth_node(num: &str) -> String {
+    pub fn nth_node(num: &str) -> String {
         let msg = format!("* {num} vértice *");
         format!("{}", msg.blue().bold())
     }
 
-    fn read_code() -> String {
+    pub fn read_code() -> String {
         format!("{}", "Digite um código:".yellow())
     }
 
-    fn read_codes() -> String {
+    pub fn read_codes() -> String {
         format!("{}", "Digite os códigos separados por virgula:".yellow())
     }
 
-    fn invalid_codes() -> String {
+    pub fn invalid_codes() -> String {
         format!(
             "{}",
             "Erro ao ler os códigos, eles devem ser inteiros separados por vírgula".red()
         )
     }
 
-    fn invalid_cycle() -> String {
+    pub fn invalid_cycle() -> String {
         format!("{}", "Certifique-se de digitar um ciclo válido, o primeiro e o último elemento precisam ser iguais, e não pode haver elementos repetidos entre eles".red())
     }
 
-    fn available_nodes() -> String {
+    pub fn available_nodes() -> String {
         format!("Vértices disponíveis:")
     }
 
-    fn load_graph_success() -> String {
+    pub fn load_graph_success() -> String {
         format!("{}", "Grafo carregado com sucesso!".green())
     }
 
-    fn load_graph_error() -> String {
+    pub fn load_graph_error() -> String {
         format!(
             "{}",
             "Erro ao carregar grafo, verique se o arquivo não foi alterado após o grafo ter sido salvo".red()
         )
     }
 
-    fn read_graph_file_error() -> String {
+    pub fn read_graph_file_error() -> String {
         format!(
             "{}",
             "Erro ao ler arquivo, verifique se o grafo foi salvo e se o arquivo existe".red()
         )
     }
 
-    fn save_graph_success() -> String {
+    pub fn save_graph_success() -> String {
         format!("{}", "Grafo salvo com sucesso!".green())
     }
 
-    fn save_graph_error() -> String {
+    pub fn save_graph_error() -> String {
         format!("{}", "Erro ao salvar arquivo :(".red())
     }
 
-    fn no_buckle(edge: usize) -> String {
+    pub fn no_buckle(edge: usize) -> String {
         format!("O vértice {edge} não tem um laço")
     }
 
-    fn contains_buckle(edge: usize) -> String {
+    pub fn contains_buckle(edge: usize) -> String {
         format!("O vértice {edge} tem um laço")
     }
 
-    fn no_path_found(edge1: usize, edge2: usize) -> String {
+    pub fn no_path_found(edge1: usize, edge2: usize) -> String {
         format!("Não existe caminho entre o vértice {edge1} e o vértice {edge2}")
     }
 
-    fn edge_added(edge1: usize, edge2: usize) -> String {
+    pub fn edge_added(edge1: usize, edge2: usize) -> String {
         format!(
             "{}\n{}",
             "Aresta criada com sucesso".green(),
@@ -466,7 +458,7 @@ impl Feedback {
         )
     }
 
-    fn edge_removed(edge1: usize, edge2: usize) -> String {
+    pub fn edge_removed(edge1: usize, edge2: usize) -> String {
         format!(
             "{} {} {}",
             "Aresta".green(),
@@ -475,27 +467,26 @@ impl Feedback {
         )
     }
 
-    fn adjacent_nodes(edge1: usize, edge2: usize) -> String {
+    pub fn adjacent_nodes(edge1: usize, edge2: usize) -> String {
         format!("Os vértices {edge1} e {edge2} são adjacentes.")
     }
 
-    fn no_cycle_found() -> String {
+    pub fn no_cycle_found() -> String {
         format!("{}", "Ciclo não encontrado")
     }
-    
-    fn not_adjacent_nodes(edge1: usize, edge2: usize) -> String {
+    pub fn not_adjacent_nodes(edge1: usize, edge2: usize) -> String {
         format!("Os vértices {edge1} e {edge2} não são adjacentes.")
     }
 
-    fn edge_already_exists() -> String {
+    pub fn edge_already_exists() -> String {
         format!("{}", "Aresta já existe".red())
     }
 
-    fn edge_dont_exists() -> String {
+    pub fn edge_dont_exists() -> String {
         format!("Não existe nenhuma aresta")
     }
 
-    fn format_edge(edge1: usize, edge2: usize) -> String {
+    pub fn format_edge(edge1: usize, edge2: usize) -> String {
         format!("{edge1} <-> {edge2}")
     }
 }
