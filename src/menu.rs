@@ -1,4 +1,7 @@
-use crate::{graph::Graph, node::Node};
+use crate::{
+    graph::Graph,
+    node::{Edge, Node},
+};
 use colored::Colorize;
 use std::{fs, io, path::Path};
 use MenuOpt::*;
@@ -227,7 +230,16 @@ fn add_edge_menu(graph: &mut Graph) -> RunOptResult {
     println!("{}", Feedback::nth_node("Segundo"));
     let code2 = read_node(graph)?.code;
 
-    match graph.add_edge(code1, code2) {
+    let edge1 = Edge {
+        code: code1,
+        weight: 1,
+    };
+    let edge2 = Edge {
+        code: code2,
+        weight: 1,
+    };
+
+    match graph.add_edge(edge1, edge2) {
         Ok(_) => Ok(Feedback::edge_added(code1, code2)),
         Err(_) => Err(Feedback::edge_already_exists()),
     }
@@ -242,7 +254,16 @@ fn remove_edge_menu(graph: &mut Graph) -> RunOptResult {
     println!("{}", Feedback::nth_node("Segundo"));
     let code2 = read_node(graph)?.code;
 
-    match graph.remove_edge(code1, code2) {
+    let edge1 = Edge {
+        code: code1,
+        weight: 1,
+    };
+    let edge2 = Edge {
+        code: code2,
+        weight: 1,
+    };
+
+    match graph.remove_edge(edge1, edge2) {
         Ok(_) => Ok(Feedback::edge_removed(code1, code2)),
         Err(_) => Err(Feedback::edge_dont_exists()),
     }

@@ -112,6 +112,7 @@ fn init_nodes() -> Graph {
     }
 
     Graph {
+        is_weighted: false,
         size: GRAPH_SIZE,
         nodes,
     }

@@ -7,16 +7,28 @@ pub struct Node {
     pub code: usize,
     pub name: String,
     pub local_type: String,
-    pub edges: Vec<usize>,
+    pub edges: Vec<Edge>,
+}
+
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Edge {
+    pub code: usize,
+    pub weight: u32,
 }
 
 impl Node {
     pub fn is_adjacent(&self, node2: &Self) -> bool {
-        self.edges.contains(&node2.code)
+        self.edges
+            .iter()
+            .find(|&edge| edge.code == node2.code)
+            .is_some()
     }
 
     pub fn has_buckle(&self) -> bool {
-        self.edges.contains(&self.code)
+        self.edges
+            .iter()
+            .find(|&edge| edge.code == self.code)
+            .is_some()
     }
 }
 
@@ -35,12 +47,12 @@ impl Display for Node {
     }
 }
 
-fn format_edges(edges: &Vec<usize>) -> String {
+fn format_edges(edges: &Vec<Edge>) -> String {
     let mut iter = edges.iter().peekable();
     let mut string = "[".to_string();
 
     while let Some(edge) = iter.next() {
-        string = format!("{string}{}", edge.to_string().cyan());
+        string = format!("{string}{}", edge.code.to_string().cyan());
 
         if iter.peek().is_none() {
             continue;
