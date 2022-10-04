@@ -1,4 +1,8 @@
 use crate::node::{Edge, Node};
+use petgraph::{
+    dot::{Config, Dot},
+    graph::UnGraph,
+};
 use serde::{Deserialize, Serialize};
 
 pub enum GraphError {
@@ -154,6 +158,14 @@ impl Graph {
 
         node2.edges.retain(|e| *e != edge1);
 
+        Ok(())
+    }
+
+    pub fn export(&self) -> Result<(), GraphError> {
+        let a = self.nodes.first();
+        let b = self.nodes.last();
+
+        let gratph = UnGraph::<Node, ()>::from_edges(&[(a, b)]);
         Ok(())
     }
 }

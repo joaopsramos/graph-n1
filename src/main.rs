@@ -1,10 +1,12 @@
+mod feedback;
 mod graph;
 mod menu;
 mod node;
 
 use crate::{
+    feedback::*,
     graph::*,
-    menu::{Feedback, MenuOpt, FILE_PATH},
+    menu::{MenuOpt, FILE_PATH},
     node::*,
 };
 use colored::*;
