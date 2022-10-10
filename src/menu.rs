@@ -150,6 +150,7 @@ pub fn run_option(option: MenuOpt, graph: &mut Graph) {
         D => find_and_show_cycle(graph),
         E => add_edge_menu(graph),
         F => remove_edge_menu(graph),
+        G => make_graph_weighted(graph),
         Save => save_graph(graph),
         Visualize => show_graph(graph),
         _ => Ok(format!("i")),
@@ -197,10 +198,6 @@ fn find_path_menu(graph: &mut Graph) -> RunOptResult {
         Some(path) => Ok(get_string_path(path)),
         None => return Ok(Feedback::no_path_found(node1.code, node2.code)),
     }
-
-    // "1 -> 2 -> 3"
-
-    // Ok(Feedback::edge_added())
 }
 
 fn find_and_show_cycle(graph: &Graph) -> RunOptResult {
@@ -269,6 +266,22 @@ fn remove_edge_menu(graph: &mut Graph) -> RunOptResult {
     }
 }
 
+fn make_graph_weighted(graph: &mut Graph) -> RunOptResult {
+    for node in &mut graph.nodes {
+        for edge in &mut node.edges {
+            println!("Aresta {}", Feedback::format_edge(node.code, edge.code));
+
+            let weight = read_weight();
+
+            Node::add_weight(edge, weight);
+
+            print!("\n")
+        }
+    }
+
+    Ok(Feedback::success_graph_weighted())
+}
+
 fn save_graph(graph: &Graph) -> RunOptResult {
     let data = serde_json::to_string(graph).unwrap();
 
@@ -280,7 +293,10 @@ fn save_graph(graph: &Graph) -> RunOptResult {
 
 pub fn load_graph() -> Option<Graph> {
     let data = match fs::read_to_string(Path::new(FILE_PATH)) {
-        Ok(data) => data,
+        Ok(data) => {
+            println!("\n{}", Feedback::load_graph_success());
+            data
+        }
         Err(_) => return None,
     };
 
@@ -338,7 +354,7 @@ fn read_cycle() -> Vec<usize> {
     }
 }
 
-fn read_node<'a>(graph: &'a Graph) -> Result<&'a Node, String> {
+fn read_node(graph: &Graph) -> Result<&Node, String> {
     loop {
         let code = read_code();
 
@@ -353,6 +369,24 @@ fn read_node<'a>(graph: &'a Graph) -> Result<&'a Node, String> {
                 continue;
             }
         }
+    }
+}
+
+fn read_weight() -> u32 {
+    loop {
+        println!("{}", Feedback::read_weight());
+
+        let mut weight = String::new();
+
+        io::stdin().read_line(&mut weight).unwrap();
+
+        match weight.trim().parse() {
+            Ok(parsed_weight) => break parsed_weight,
+            Err(_) => {
+                println!("{}", Feedback::invalid_weight());
+                continue;
+            }
+        };
     }
 }
 
@@ -422,6 +456,17 @@ impl Feedback {
         format!(
             "{}",
             "Erro ao ler os códigos, eles devem ser inteiros separados por vírgula".red()
+        )
+    }
+
+    pub fn read_weight() -> String {
+        format!("{}", "Digite o peso da aresta:".yellow())
+    }
+
+    pub fn invalid_weight() -> String {
+        format!(
+            "{}",
+            "Peso inválido, ele deve ser um inteiro maior que 0".red()
         )
     }
 
@@ -509,5 +554,9 @@ impl Feedback {
 
     pub fn format_edge(edge1: usize, edge2: usize) -> String {
         format!("{edge1} <-> {edge2}")
+    }
+
+    pub fn success_graph_weighted() -> String {
+        format!("{}", "Grafo ponderado com sucesso!".green())
     }
 }

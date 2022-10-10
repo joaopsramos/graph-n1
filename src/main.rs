@@ -61,7 +61,6 @@ fn setup_graph_menu() -> Option<Graph> {
             },
             MenuOpt::No => Some(init_nodes()),
             MenuOpt::Exit => {
-                println!("Encerrando...");
                 break None;
             }
             _ => {

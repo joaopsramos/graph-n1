@@ -30,6 +30,10 @@ impl Node {
             .find(|&edge| edge.code == self.code)
             .is_some()
     }
+
+    pub fn add_weight(edge: &mut Edge, weight: u32) {
+        edge.weight = weight;
+    }
 }
 
 impl Display for Node {
