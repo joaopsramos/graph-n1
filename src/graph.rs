@@ -1,14 +1,14 @@
-use crate::node::Node;
+use crate::node::{Edge, Node};
 use serde::{Deserialize, Serialize};
 
 pub enum GraphError {
-    NodeNotFound,
     EdgeAlreadyExists,
     EdgeDontExists,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Graph {
+    pub is_weighted: bool,
     pub size: usize,
     pub nodes: Vec<Node>,
 }
@@ -45,7 +45,7 @@ impl Graph {
 
             let current_node = self.find_by_code(*current_code).unwrap();
 
-            for code in current_node.edges.iter() {
+            for code in current_node.edges.iter().map(|e| &e.code) {
                 if !visited.contains(code) {
                     let mut new_path = path.clone();
                     new_path.push(*code);
@@ -93,7 +93,12 @@ impl Graph {
         let mut current_node = first_node;
 
         while let Some(code) = codes_iter.next() {
-            if !current_node.edges.contains(code) {
+            if !current_node
+                .edges
+                .iter()
+                .find(|e| e.code == *code)
+                .is_some()
+            {
                 return None;
             }
 
@@ -119,8 +124,8 @@ impl Graph {
         Some(result)
     }
 
-    pub fn add_edge(&mut self, edge1: usize, edge2: usize) -> Result<(), GraphError> {
-        let node1 = self.find_by_code_mut(edge1).unwrap();
+    pub fn add_edge(&mut self, edge1: Edge, edge2: Edge) -> Result<(), GraphError> {
+        let node1 = self.find_by_code_mut(edge1.code).unwrap();
 
         if node1.edges.contains(&edge2) {
             return Err(GraphError::EdgeAlreadyExists);
@@ -129,25 +134,25 @@ impl Graph {
         node1.edges.push(edge2);
 
         if edge1 != edge2 {
-            let node2 = self.find_by_code_mut(edge2).unwrap();
+            let node2 = self.find_by_code_mut(edge2.code).unwrap();
             node2.edges.push(edge1);
         }
 
         Ok(())
     }
 
-    pub fn remove_edge(&mut self, edge1: usize, edge2: usize) -> Result<(), GraphError> {
-        let node1 = self.find_by_code_mut(edge1).unwrap();
+    pub fn remove_edge(&mut self, edge1: Edge, edge2: Edge) -> Result<(), GraphError> {
+        let node1 = self.find_by_code_mut(edge1.code).unwrap();
 
         if !node1.edges.contains(&edge2) {
             return Err(GraphError::EdgeDontExists);
         }
 
-        node1.edges.retain(|code| *code != edge2);
+        node1.edges.retain(|e| *e != edge2);
 
-        let node2 = self.find_by_code_mut(edge2).unwrap();
+        let node2 = self.find_by_code_mut(edge2.code).unwrap();
 
-        node2.edges.retain(|code| *code != edge1);
+        node2.edges.retain(|e| *e != edge1);
 
         Ok(())
     }
