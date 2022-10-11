@@ -1,1 +1,43 @@
-{"is_weighted":false,"size":2,"nodes":[{"code":1,"name":"cantina","local_type":"restaurante","edges":[{"code":2,"weight":2}]},{"code":2,"name":"predio 1","local_type":"academico","edges":[{"code":3,"weight":3},{"code":4,"weight":1}]},{"code":3,"name":"predio 2","local_type":"academico","edges":[{"code":2,"weight":4},{"code":4,"weight":1}]},{"code":4,"name":"cozinha","local_type":"restaurante","edges":[{"code":2,"weight":2},{"code":3,"weight":3}]}]}
+{
+    "is_weighted": true,
+    "size": 3,
+    "edges": [
+        {
+            "from": 2,
+            "to": 2,
+            "weight": 1
+        },
+        {
+            "from": 1,
+            "to": 2,
+            "weight": 3
+        },
+        {
+            "from": 2,
+            "to": 3,
+            "weight": 2
+        },
+        {
+            "from": 3,
+            "to": 1,
+            "weight": 4
+        }
+    ],
+    "nodes": [
+        {
+            "code": 1,
+            "name": "joao",
+            "local_type": "pedro"
+        },
+        {
+            "code": 2,
+            "name": "alo",
+            "local_type": "teste"
+        },
+        {
+            "code": 3,
+            "name": "vertice",
+            "local_type": "tres"
+        }
+    ]
+}

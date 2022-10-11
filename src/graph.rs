@@ -1,5 +1,6 @@
-use crate::node::{Edge, Node};
+use crate::node::Node;
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 
 pub enum GraphError {
     EdgeAlreadyExists,
@@ -10,21 +11,69 @@ pub enum GraphError {
 pub struct Graph {
     pub is_weighted: bool,
     pub size: usize,
+    pub edges: Vec<Edge>,
     pub nodes: Vec<Node>,
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Edge {
+    pub from: usize,
+    pub to: usize,
+    pub weight: u32,
+}
+
 impl Graph {
+    pub fn make_weighted(&mut self) {
+        self.is_weighted = true;
+    }
+
     pub fn find_by_code(&self, code: usize) -> Option<&Node> {
         self.nodes.iter().find(|node| node.code == code)
     }
-    pub fn find_by_code_mut(&mut self, code: usize) -> Option<&mut Node> {
-        self.nodes.iter_mut().find(|node| node.code == code)
+
+    pub fn find_edge_by_from_to(&self, from: usize, to: usize) -> Option<&Edge> {
+        self.edges.iter().find(|edge| {
+            (edge.from == from && edge.to == to) || (edge.from == to && edge.to == from)
+        })
+    }
+    pub fn add_edge(&mut self, edge: Edge) -> Result<(), GraphError> {
+        if self.edges.contains(&edge) {
+            Err(GraphError::EdgeAlreadyExists)
+        } else {
+            self.edges.push(edge);
+            Ok(())
+        }
+    }
+
+    pub fn is_adjacent(&self, node1: &Node, node2: &Node) -> bool {
+        self.edges
+            .iter()
+            .find(|&edge| {
+                let from_to = (edge.from, edge.to);
+
+                from_to == (node1.code, node2.code) || from_to == (node2.code, node1.code)
+            })
+            .is_some()
+    }
+
+    pub fn has_buckle(&self, node: &Node) -> bool {
+        self.edges
+            .iter()
+            .find(|&edge| edge.from == node.code && edge.to == node.code)
+            .is_some()
     }
 
     fn get_by_codes(&self, codes: &Vec<usize>) -> Vec<&Node> {
         self.nodes
             .iter()
             .filter(|node| codes.contains(&node.code))
+            .collect()
+    }
+
+    fn find_edges_from_node(&self, node: &Node) -> Vec<&Edge> {
+        self.edges
+            .iter()
+            .filter(|edge| edge.from == node.code)
             .collect()
     }
 
@@ -44,11 +93,12 @@ impl Graph {
             }
 
             let current_node = self.find_by_code(*current_code).unwrap();
+            let current_node_edges = self.find_edges_from_node(&current_node);
 
-            for code in current_node.edges.iter().map(|e| &e.code) {
-                if !visited.contains(code) {
+            for code in current_node_edges.iter().map(|e| e.to) {
+                if !visited.contains(&code) {
                     let mut new_path = path.clone();
-                    new_path.push(*code);
+                    new_path.push(code);
                     queue.push(new_path);
                 }
             }
@@ -93,12 +143,9 @@ impl Graph {
         let mut current_node = first_node;
 
         while let Some(code) = codes_iter.next() {
-            if !current_node
-                .edges
-                .iter()
-                .find(|e| e.code == *code)
-                .is_some()
-            {
+            let current_node_edges = self.find_edges_from_node(current_node);
+
+            if !current_node_edges.iter().find(|e| e.to == *code).is_some() {
                 return None;
             }
 
@@ -109,51 +156,33 @@ impl Graph {
         Some(cycle)
     }
 
-    pub fn format_path(nodes: Vec<Node>) -> Option<String> {
-        let mut v_iter = nodes.iter();
-
-        let mut result = match v_iter.next() {
-            Some(node) => format!("{}", node),
-            None => return None,
-        };
-
-        while let Some(node) = v_iter.next() {
-            result = format!("{result} -> {node}");
-        }
-
-        Some(result)
+    pub fn add_weight(edge: &mut Edge, weight: u32) {
+        edge.weight = weight;
     }
 
-    pub fn add_edge(&mut self, edge1: Edge, edge2: Edge) -> Result<(), GraphError> {
-        let node1 = self.find_by_code_mut(edge1.code).unwrap();
+    pub fn remove_edge(&mut self, from: usize, to: usize) -> Result<(), GraphError> {
+        let edge = self.find_edge_by_from_to(from, to);
 
-        if node1.edges.contains(&edge2) {
-            return Err(GraphError::EdgeAlreadyExists);
-        }
-
-        node1.edges.push(edge2);
-
-        if edge1 != edge2 {
-            let node2 = self.find_by_code_mut(edge2.code).unwrap();
-            node2.edges.push(edge1);
-        }
-
-        Ok(())
-    }
-
-    pub fn remove_edge(&mut self, edge1: Edge, edge2: Edge) -> Result<(), GraphError> {
-        let node1 = self.find_by_code_mut(edge1.code).unwrap();
-
-        if !node1.edges.contains(&edge2) {
+        if edge.is_none() {
             return Err(GraphError::EdgeDontExists);
         }
 
-        node1.edges.retain(|e| *e != edge2);
+        let edge = edge.unwrap().clone();
 
-        let node2 = self.find_by_code_mut(edge2.code).unwrap();
-
-        node2.edges.retain(|e| *e != edge1);
+        self.edges.retain(|e| e != &edge);
 
         Ok(())
+    }
+}
+
+impl Display for Graph {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut string = String::new();
+
+        for node in &self.nodes {
+            string = format!("{string}{node}\n");
+        }
+
+        write!(f, "{string}")
     }
 }

@@ -1,6 +1,6 @@
 use crate::{
-    graph::Graph,
-    node::{Edge, Node},
+    graph::{Edge, Graph},
+    node::Node,
 };
 use colored::Colorize;
 use std::{fs, io, path::Path};
@@ -171,7 +171,7 @@ fn verify_if_two_nodes_are_adjacent(graph: &Graph) -> RunOptResult {
     println!("{}", Feedback::nth_node("Segundo"));
     let node2 = read_node(graph)?;
 
-    let result = if node1.is_adjacent(node2) {
+    let result = if graph.is_adjacent(node1, node2) {
         Feedback::adjacent_nodes(node1.code, node2.code)
     } else {
         Feedback::not_adjacent_nodes(node1.code, node2.code)
@@ -182,8 +182,10 @@ fn verify_if_two_nodes_are_adjacent(graph: &Graph) -> RunOptResult {
 
 fn has_buckle_menu(graph: &mut Graph) -> RunOptResult {
     println!("{}", format_available_nodes(graph));
+
     let node = read_node(graph)?;
-    if node.has_buckle() {
+
+    if graph.has_buckle(&node) {
         Ok(Feedback::contains_buckle(node.code))
     } else {
         Ok(Feedback::no_buckle(node.code))
@@ -219,25 +221,26 @@ fn get_string_path(nodes: Vec<&Node>) -> String {
 }
 
 fn add_edge_menu(graph: &mut Graph) -> RunOptResult {
+    let default_weight = 1;
+
     println!("{}\n", format_available_nodes(graph));
 
     println!("{}", Feedback::nth_node("Primeiro"));
-    let code1 = read_node(graph)?.code;
+    let from = read_node(graph)?.code;
 
-    println!("{}", Feedback::nth_node("Segundo"));
-    let code2 = read_node(graph)?.code;
+    println!("\n{}", Feedback::nth_node("Segundo"));
+    let to = read_node(graph)?.code;
 
-    let edge1 = Edge {
-        code: code1,
-        weight: 1,
-    };
-    let edge2 = Edge {
-        code: code2,
-        weight: 1,
+    let weight = if graph.is_weighted {
+        read_weight()
+    } else {
+        default_weight
     };
 
-    match graph.add_edge(edge1, edge2) {
-        Ok(_) => Ok(Feedback::edge_added(code1, code2)),
+    let edge = Edge { from, to, weight };
+
+    match graph.add_edge(edge.clone()) {
+        Ok(_) => Ok(Feedback::edge_added(edge)),
         Err(_) => Err(Feedback::edge_already_exists()),
     }
 }
@@ -246,37 +249,32 @@ fn remove_edge_menu(graph: &mut Graph) -> RunOptResult {
     println!("{}\n", format_available_nodes(graph));
 
     println!("{}", Feedback::nth_node("Primeiro"));
-    let code1 = read_node(graph)?.code;
+    let from = read_node(graph)?.code;
 
     println!("{}", Feedback::nth_node("Segundo"));
-    let code2 = read_node(graph)?.code;
+    let to = read_node(graph)?.code;
 
-    let edge1 = Edge {
-        code: code1,
-        weight: 1,
-    };
-    let edge2 = Edge {
-        code: code2,
-        weight: 1,
-    };
-
-    match graph.remove_edge(edge1, edge2) {
-        Ok(_) => Ok(Feedback::edge_removed(code1, code2)),
+    match graph.remove_edge(from, to) {
+        Ok(_) => Ok(Feedback::edge_removed(from, to)),
         Err(_) => Err(Feedback::edge_dont_exists()),
     }
 }
 
 fn make_graph_weighted(graph: &mut Graph) -> RunOptResult {
-    for node in &mut graph.nodes {
-        for edge in &mut node.edges {
-            println!("Aresta {}", Feedback::format_edge(node.code, edge.code));
+    if graph.is_weighted {
+        return Err(Feedback::graph_already_weighted());
+    }
 
-            let weight = read_weight();
+    graph.make_weighted();
 
-            Node::add_weight(edge, weight);
+    for edge in &mut graph.edges {
+        println!("Aresta {}", Feedback::format_edge(edge.from, edge.to));
 
-            print!("\n")
-        }
+        let weight = read_weight();
+
+        Graph::add_weight(edge, weight);
+
+        print!("\n")
     }
 
     Ok(Feedback::success_graph_weighted())
@@ -293,15 +291,15 @@ fn save_graph(graph: &Graph) -> RunOptResult {
 
 pub fn load_graph() -> Option<Graph> {
     let data = match fs::read_to_string(Path::new(FILE_PATH)) {
-        Ok(data) => {
-            println!("\n{}", Feedback::load_graph_success());
-            data
-        }
+        Ok(data) => data,
         Err(_) => return None,
     };
 
     match serde_json::from_str(&data) {
-        Ok(parsed_graph) => parsed_graph,
+        Ok(parsed_graph) => {
+            println!("\n{}", Feedback::load_graph_success());
+            parsed_graph
+        }
         Err(_) => None,
     }
 }
@@ -361,11 +359,10 @@ fn read_node(graph: &Graph) -> Result<&Node, String> {
         match graph.find_by_code(code) {
             Some(node) => {
                 println!("{}", Feedback::code_read(code));
-                print!("\n");
                 break Ok(node);
             }
             None => {
-                println!("{}", Feedback::node_not_found_with_code());
+                println!("{}\n", Feedback::node_not_found_with_code());
                 continue;
             }
         }
@@ -482,13 +479,6 @@ impl Feedback {
         format!("{}", "Grafo carregado com sucesso!".green())
     }
 
-    pub fn load_graph_error() -> String {
-        format!(
-            "{}",
-            "Erro ao carregar grafo, verique se o arquivo não foi alterado após o grafo ter sido salvo".red()
-        )
-    }
-
     pub fn read_graph_file_error() -> String {
         format!(
             "{}",
@@ -516,11 +506,11 @@ impl Feedback {
         format!("Não existe caminho entre o vértice {edge1} e o vértice {edge2}")
     }
 
-    pub fn edge_added(edge1: usize, edge2: usize) -> String {
+    pub fn edge_added(edge: Edge) -> String {
         format!(
             "{}\n{}",
             "Aresta criada com sucesso".green(),
-            Self::format_edge(edge1, edge2)
+            Self::format_edge(edge.from, edge.to)
         )
     }
 
@@ -558,5 +548,8 @@ impl Feedback {
 
     pub fn success_graph_weighted() -> String {
         format!("{}", "Grafo ponderado com sucesso!".green())
+    }
+    pub fn graph_already_weighted() -> String {
+        format!("{}", "O grafo já é ponderado".red())
     }
 }

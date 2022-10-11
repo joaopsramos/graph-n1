@@ -103,7 +103,6 @@ fn init_nodes() -> Graph {
                 code: i,
                 name,
                 local_type,
-                edges: Vec::new(),
             });
 
             break;
@@ -114,6 +113,7 @@ fn init_nodes() -> Graph {
         is_weighted: false,
         size: GRAPH_SIZE,
         nodes,
+        edges: Vec::new(),
     }
 }
 
