@@ -163,12 +163,12 @@ pub fn run_option(option: MenuOpt, graph: &mut Graph) {
 }
 
 fn verify_if_two_nodes_are_adjacent(graph: &Graph) -> RunOptResult {
-    println!("{}", format_available_nodes(graph));
+    println!("{}\n", format_available_nodes(graph));
 
     println!("{}", Feedback::nth_node("Primeiro"));
     let node1 = read_node(graph)?;
 
-    println!("{}", Feedback::nth_node("Segundo"));
+    println!("\n{}", Feedback::nth_node("Segundo"));
     let node2 = read_node(graph)?;
 
     let result = if graph.is_adjacent(node1, node2) {
@@ -181,7 +181,7 @@ fn verify_if_two_nodes_are_adjacent(graph: &Graph) -> RunOptResult {
 }
 
 fn has_buckle_menu(graph: &mut Graph) -> RunOptResult {
-    println!("{}", format_available_nodes(graph));
+    println!("{}\n", format_available_nodes(graph));
 
     let node = read_node(graph)?;
 
@@ -193,11 +193,19 @@ fn has_buckle_menu(graph: &mut Graph) -> RunOptResult {
 }
 
 fn find_path_menu(graph: &mut Graph) -> RunOptResult {
+    println!("{}", Feedback::nth_node("Primeiro"));
     let node1 = read_node(graph)?;
+
+    println!("\n{}", Feedback::nth_node("Segundo"));
     let node2 = read_node(graph)?;
 
+    print!("\n");
+
     match graph.get_path(node1, node2) {
-        Some(path) => Ok(get_string_path(path)),
+        Some(path) => {
+            println!("{}", Feedback::path_found());
+            Ok(get_string_path(path))
+        }
         None => return Ok(Feedback::no_path_found(node1.code, node2.code)),
     }
 }
@@ -207,8 +215,11 @@ fn find_and_show_cycle(graph: &Graph) -> RunOptResult {
     print!("\n");
 
     match graph.get_cycle(&codes) {
-        Some(cycle) => Ok(get_string_path(cycle)),
-        None => return Ok(Feedback::no_cycle_found()),
+        Some(cycle) => {
+            println!("{}", Feedback::cycle_found());
+            Ok(get_string_path(cycle))
+        }
+        None => Ok(Feedback::no_cycle_found()),
     }
 }
 
@@ -232,6 +243,7 @@ fn add_edge_menu(graph: &mut Graph) -> RunOptResult {
     let to = read_node(graph)?.code;
 
     let weight = if graph.is_weighted {
+        print!("\n");
         read_weight()
     } else {
         default_weight
@@ -239,6 +251,7 @@ fn add_edge_menu(graph: &mut Graph) -> RunOptResult {
 
     let edge = Edge { from, to, weight };
 
+    print!("\n");
     match graph.add_edge(edge.clone()) {
         Ok(_) => Ok(Feedback::edge_added(edge)),
         Err(_) => Err(Feedback::edge_already_exists()),
@@ -317,7 +330,10 @@ fn read_code() -> usize {
         io::stdin().read_line(&mut code).unwrap();
 
         match code.trim().parse() {
-            Ok(parsed_code) => break parsed_code,
+            Ok(parsed_code) => {
+                println!("{}", Feedback::code_read(parsed_code));
+                break parsed_code;
+            }
             Err(_) => {
                 println!("{}", Feedback::invalid_code());
                 continue;
@@ -337,16 +353,18 @@ fn read_cycle() -> Vec<usize> {
         let codes_iter = codes.trim().split(",").map(|c| c.trim().parse::<usize>());
 
         if codes_iter.clone().any(|c| c.is_err()) {
-            println!("{}", Feedback::invalid_codes());
+            println!("{}\n", Feedback::invalid_codes());
             continue;
         }
 
         let codes = codes_iter.map(|c| c.unwrap()).collect();
 
         if !Graph::is_cycle(&codes) {
-            println!("{}", Feedback::invalid_cycle());
+            println!("{}\n", Feedback::invalid_cycle());
             continue;
         }
+
+        println!("{}", Feedback::cycle_read(&codes));
 
         break codes;
     }
@@ -357,10 +375,7 @@ fn read_node(graph: &Graph) -> Result<&Node, String> {
         let code = read_code();
 
         match graph.find_by_code(code) {
-            Some(node) => {
-                println!("{}", Feedback::code_read(code));
-                break Ok(node);
-            }
+            Some(node) => break Ok(node),
             None => {
                 println!("{}\n", Feedback::node_not_found_with_code());
                 continue;
@@ -378,7 +393,10 @@ fn read_weight() -> u32 {
         io::stdin().read_line(&mut weight).unwrap();
 
         match weight.trim().parse() {
-            Ok(parsed_weight) => break parsed_weight,
+            Ok(parsed_weight) => {
+                println!("{}", Feedback::weight_read(parsed_weight));
+                break parsed_weight;
+            }
             Err(_) => {
                 println!("{}", Feedback::invalid_weight());
                 continue;
@@ -418,6 +436,23 @@ impl Feedback {
         format!("Código digitado: {}", code.to_string().magenta())
     }
 
+    pub fn weight_read(weight: u32) -> String {
+        Self::clear_line();
+        format!("Peso digitado: {}", weight.to_string().magenta())
+    }
+
+    pub fn cycle_read(cycle: &Vec<usize>) -> String {
+        Self::clear_line();
+
+        let cycle = cycle
+            .iter()
+            .map(|c| c.to_string())
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        format!("Ciclo digitado: {}", cycle.magenta())
+    }
+
     pub fn invalid_option() -> String {
         format!(
             "{}",
@@ -442,7 +477,7 @@ impl Feedback {
     }
 
     pub fn read_code() -> String {
-        format!("{}", "Digite um código:".yellow())
+        format!("{}", "Digite o código:".yellow())
     }
 
     pub fn read_codes() -> String {
@@ -494,16 +529,33 @@ impl Feedback {
         format!("{}", "Erro ao salvar arquivo :(".red())
     }
 
-    pub fn no_buckle(edge: usize) -> String {
-        format!("O vértice {edge} não tem um laço")
+    pub fn no_buckle(code: usize) -> String {
+        format!(
+            "\nO vértice {} {} um laço",
+            code.to_string().green(),
+            "não possui".red()
+        )
     }
 
-    pub fn contains_buckle(edge: usize) -> String {
-        format!("O vértice {edge} tem um laço")
+    pub fn contains_buckle(code: usize) -> String {
+        format!(
+            "\nO vértice {} {} um laço",
+            code.to_string().green(),
+            "possui".cyan()
+        )
     }
 
-    pub fn no_path_found(edge1: usize, edge2: usize) -> String {
-        format!("Não existe caminho entre o vértice {edge1} e o vértice {edge2}")
+    pub fn path_found() -> String {
+        format!("{}", "Caminho encontrado!".green())
+    }
+
+    pub fn no_path_found(code1: usize, code2: usize) -> String {
+        format!(
+            "{} existe caminho entre o vértice {} e o vértice {}",
+            "Não".red(),
+            code1.to_string().green(),
+            code2.to_string().green()
+        )
     }
 
     pub fn edge_added(edge: Edge) -> String {
@@ -523,15 +575,30 @@ impl Feedback {
         )
     }
 
-    pub fn adjacent_nodes(edge1: usize, edge2: usize) -> String {
-        format!("Os vértices {edge1} e {edge2} são adjacentes.")
+    pub fn adjacent_nodes(code1: usize, code2: usize) -> String {
+        format!(
+            "\nOs vértices {} e {} {} adjacentes.",
+            code1.to_string().green(),
+            code2.to_string().green(),
+            "são".cyan()
+        )
+    }
+
+    pub fn not_adjacent_nodes(code1: usize, code2: usize) -> String {
+        format!(
+            "\nOs vértices {} e {} {} adjacentes.",
+            code1.to_string().green(),
+            code2.to_string().green(),
+            "não são".red()
+        )
+    }
+
+    pub fn cycle_found() -> String {
+        format!("{}", "Ciclo encontrado!".green())
     }
 
     pub fn no_cycle_found() -> String {
-        format!("{}", "Ciclo não encontrado")
-    }
-    pub fn not_adjacent_nodes(edge1: usize, edge2: usize) -> String {
-        format!("Os vértices {edge1} e {edge2} não são adjacentes.")
+        format!("Ciclo {} encontrado", "não".red())
     }
 
     pub fn edge_already_exists() -> String {
