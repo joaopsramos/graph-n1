@@ -1,4 +1,5 @@
 use crate::node::Node;
+use colored::Colorize;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
@@ -178,11 +179,37 @@ impl Graph {
 impl Display for Graph {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut string = String::new();
+        let mut iter = self.nodes.iter().peekable();
 
-        for node in &self.nodes {
-            string = format!("{string}{node}\n");
+        while let Some(node) = iter.next() {
+            let edges: Vec<_> = self
+                .find_edges_from_node(node)
+                .iter()
+                .map(|e| e.to)
+                .collect();
+
+            string = format!("{string}{node} -> {}", format_edges(edges));
+
+            if iter.peek().is_some() {
+                string = format!("{string}\n");
+            }
         }
 
         write!(f, "{string}")
     }
+}
+
+fn format_edges(edges: Vec<usize>) -> String {
+    let mut string = "[".to_string();
+    let mut iter = edges.iter().peekable();
+
+    while let Some(edge) = iter.next() {
+        string = format!("{string}{}", edge.to_string().cyan());
+
+        if iter.peek().is_some() {
+            string = format!("{string}, ");
+        }
+    }
+
+    format!("{string}]")
 }

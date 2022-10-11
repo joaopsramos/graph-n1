@@ -1,10 +1,12 @@
+mod feedback;
 mod graph;
 mod menu;
 mod node;
 
 use crate::{
+    feedback::Feedback,
     graph::*,
-    menu::{Feedback, MenuOpt, FILE_PATH},
+    menu::{MenuOpt, FILE_PATH},
     node::*,
 };
 use colored::*;
@@ -16,7 +18,7 @@ fn main() {
     let mut graph = match setup_graph_menu() {
         Some(graph) => graph,
         None => {
-            println!("Encerrando...");
+            println!("\nEncerrando...");
             return;
         }
     };
@@ -27,7 +29,7 @@ fn main() {
         let option = menu::read_option();
 
         if option == MenuOpt::Exit {
-            println!("Encerrando...");
+            println!("\nEncerrando...");
             break;
         }
 
@@ -47,7 +49,7 @@ fn setup_graph_menu() -> Option<Graph> {
         };
 
         if !has_data {
-            return Some(init_nodes());
+            return Some(read_graph());
         }
 
         menu::show_menu_load_graph();
@@ -59,7 +61,7 @@ fn setup_graph_menu() -> Option<Graph> {
                 }
                 graph => return graph,
             },
-            MenuOpt::No => Some(init_nodes()),
+            MenuOpt::No => Some(read_graph()),
             MenuOpt::Exit => {
                 break None;
             }
@@ -71,7 +73,7 @@ fn setup_graph_menu() -> Option<Graph> {
     }
 }
 
-fn init_nodes() -> Graph {
+fn read_graph() -> Graph {
     let mut nodes = Vec::new();
 
     let size = format!("{}", GRAPH_SIZE.to_string().green());
