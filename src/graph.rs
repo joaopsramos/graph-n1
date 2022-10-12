@@ -23,6 +23,12 @@ pub struct Edge {
     pub weight: u32,
 }
 
+impl Edge {
+    fn has(&self, from: usize, to: usize) -> bool {
+        (self.from == from && self.to == to) || (self.from == to && self.to == from)
+    }
+}
+
 impl Graph {
     pub fn make_weighted(&mut self) {
         self.is_weighted = true;
@@ -33,48 +39,73 @@ impl Graph {
     }
 
     pub fn find_edge_by_from_to(&self, from: usize, to: usize) -> Option<&Edge> {
-        self.edges.iter().find(|edge| {
-            (edge.from == from && edge.to == to) || (edge.from == to && edge.to == from)
-        })
+        self.edges.iter().find(|edge| edge.has(from, to))
     }
+
     pub fn add_edge(&mut self, edge: Edge) -> Result<(), GraphError> {
-        if self.edges.contains(&edge) {
-            Err(GraphError::EdgeAlreadyExists)
-        } else {
-            self.edges.push(edge);
-            Ok(())
+        match self.edges.iter().find(|e| e.has(edge.from, edge.to)) {
+            Some(_) => Err(GraphError::EdgeAlreadyExists),
+            None => {
+                self.edges.push(edge);
+                Ok(())
+            }
         }
+    }
+
+    pub fn is_complete(&self) -> bool {
+        let codes = self.nodes.iter().map(|n| n.code);
+        let edges: Vec<_> = self
+            .edges
+            .iter()
+            .flat_map(|e| [[e.from, e.to], [e.to, e.from]])
+            .collect();
+
+        for code1 in codes.clone() {
+            let codes_without_current = codes.clone().filter(|c| *c != code1);
+
+            for code2 in codes_without_current {
+                if !edges.contains(&[code1, code2]) {
+                    return false;
+                }
+            }
+        }
+
+        true
     }
 
     pub fn is_adjacent(&self, node1: &Node, node2: &Node) -> bool {
         self.edges
             .iter()
-            .find(|&edge| {
-                let from_to = (edge.from, edge.to);
-
-                from_to == (node1.code, node2.code) || from_to == (node2.code, node1.code)
-            })
+            .find(|&edge| edge.has(node1.code, node2.code))
             .is_some()
     }
 
     pub fn has_buckle(&self, node: &Node) -> bool {
         self.edges
             .iter()
-            .find(|&edge| edge.from == node.code && edge.to == node.code)
+            .find(|&edge| edge.has(node.code, node.code))
             .is_some()
     }
 
     fn get_by_codes(&self, codes: &Vec<usize>) -> Vec<&Node> {
-        self.nodes
+        codes
             .iter()
-            .filter(|node| codes.contains(&node.code))
+            .map(|c| self.nodes.iter().find(|n| n.code == *c).unwrap())
             .collect()
     }
 
-    fn find_edges_from_node(&self, node: &Node) -> Vec<&Edge> {
+    fn find_connected_nodes(&self, node: &Node) -> Vec<usize> {
         self.edges
             .iter()
-            .filter(|edge| edge.from == node.code)
+            .filter_map(|edge| {
+                if edge.from == node.code {
+                    return Some(edge.to);
+                } else if edge.to == node.code {
+                    return Some(edge.from);
+                }
+
+                None
+            })
             .collect()
     }
 
@@ -87,6 +118,7 @@ impl Graph {
 
         while let Some(path) = queue.pop() {
             let current_code = path.last().unwrap();
+            visited.push(*current_code);
 
             if *current_code == end_node.code {
                 let nodes = self.get_by_codes(&path);
@@ -94,9 +126,9 @@ impl Graph {
             }
 
             let current_node = self.find_by_code(*current_code).unwrap();
-            let current_node_edges = self.find_edges_from_node(&current_node);
+            let current_node_edges = self.find_connected_nodes(&current_node);
 
-            for code in current_node_edges.iter().map(|e| e.to) {
+            for code in current_node_edges {
                 if !visited.contains(&code) {
                     let mut new_path = path.clone();
                     new_path.push(code);
@@ -144,9 +176,9 @@ impl Graph {
         let mut current_node = first_node;
 
         while let Some(code) = codes_iter.next() {
-            let current_node_edges = self.find_edges_from_node(current_node);
+            let current_node_edges = self.find_connected_nodes(current_node);
 
-            if !current_node_edges.iter().find(|e| e.to == *code).is_some() {
+            if !current_node_edges.iter().find(|c| *c == code).is_some() {
                 return None;
             }
 
@@ -174,21 +206,39 @@ impl Graph {
 
         Ok(())
     }
+
+    pub fn calculate_path(&self, start_node: &Node, end_node: &Node) -> Option<u32> {
+        let mut path_sum = 0;
+        let path = self.get_path(start_node, end_node)?;
+        let mut iter = path.iter().peekable();
+
+        while let Some(node_from) = iter.next() {
+            let node_to = iter.peek();
+
+            if node_to.is_none() {
+                break;
+            }
+
+            let edge = self
+                .find_edge_by_from_to(node_from.code, node_to.unwrap().code)
+                .unwrap();
+
+            path_sum += edge.weight;
+        }
+
+        Some(path_sum)
+    }
 }
 
 impl Display for Graph {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut string = String::new();
+        let mut string = format!("{}\n", "** Grafo **".blue().bold());
         let mut iter = self.nodes.iter().peekable();
 
         while let Some(node) = iter.next() {
-            let edges: Vec<_> = self
-                .find_edges_from_node(node)
-                .iter()
-                .map(|e| e.to)
-                .collect();
+            let connected_nodes = self.find_connected_nodes(node);
 
-            string = format!("{string}{node} -> {}", format_edges(edges));
+            string = format!("{string}{node} -> {}", format_edges(connected_nodes));
 
             if iter.peek().is_some() {
                 string = format!("{string}\n");

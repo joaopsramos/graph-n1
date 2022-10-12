@@ -198,7 +198,24 @@ impl Feedback {
     pub fn success_graph_weighted() -> String {
         format!("{}", "Grafo ponderado com sucesso!".green())
     }
+
     pub fn graph_already_weighted() -> String {
         format!("{}", "O grafo já é ponderado".red())
+    }
+
+    pub fn graph_is_complete() -> String {
+        format!("O grafo {} completo", "é".green())
+    }
+
+    pub fn graph_is_not_complete() -> String {
+        format!("O grafo {} completo", "não é".red())
+    }
+
+    pub fn graph_is_not_weighted() -> String {
+        format!("{}", "O grafo precisa ser ponderado".red())
+    }
+
+    pub fn path_size(size: u32) -> String {
+        format!("O tamanho do caminho é: {}", size.to_string().green())
     }
 }

@@ -37,8 +37,6 @@ fn main() {
 
         menu::run_option(option, &mut graph);
     }
-
-    // dbg!(graph);
 }
 
 fn setup_graph_menu() -> Option<Graph> {

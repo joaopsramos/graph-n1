@@ -63,7 +63,6 @@ pub fn show_menu() {
         "-------------------------------------------------------------------------------".magenta()
     );
     println!("{}", "** Menu **".blue().bold());
-    println!("{}", "Digite uma opção:".yellow());
 
     println!(
         "\
@@ -78,8 +77,8 @@ pub fn show_menu() {
 {}) Verificar se o grafo é completo
 {}) Calcular o custo do caminho entre dois vértices informados
 ---
-{}) Visualizar grafo atual
-{}) Salvar grafo atual
+{}) Visualizar grafo
+{}) Salvar grafo
 {}) Encerrar",
         "a".magenta().bold(),
         "b".magenta().bold(),
@@ -100,6 +99,8 @@ pub fn show_menu() {
         "{}",
         "-------------------------------------------------------------------------------".magenta()
     );
+
+    println!("{}", "Digite uma opção:".yellow());
 }
 
 pub fn read_option() -> MenuOpt {
@@ -152,6 +153,8 @@ pub fn run_option(option: MenuOpt, graph: &mut Graph) {
         E => add_edge_menu(graph),
         F => remove_edge_menu(graph),
         G => make_graph_weighted(graph),
+        I => is_graph_complete(graph),
+        J => calc_path_between_nodes(graph),
         Save => save_graph(graph),
         Visualize => show_graph(graph),
         _ => Ok(format!("i")),
@@ -293,6 +296,33 @@ fn make_graph_weighted(graph: &mut Graph) -> RunOptResult {
     }
 
     Ok(Feedback::success_graph_weighted())
+}
+
+fn is_graph_complete(graph: &Graph) -> RunOptResult {
+    if graph.is_complete() {
+        Ok(Feedback::graph_is_complete())
+    } else {
+        Ok(Feedback::graph_is_not_complete())
+    }
+}
+
+fn calc_path_between_nodes(graph: &Graph) -> RunOptResult {
+    if !graph.is_weighted {
+        return Err(Feedback::graph_is_not_weighted());
+    }
+
+    println!("{}", Feedback::nth_node("Primeiro"));
+    let node1 = read_node(graph)?;
+
+    println!("\n{}", Feedback::nth_node("Segundo"));
+    let node2 = read_node(graph)?;
+
+    print!("\n");
+
+    match graph.calculate_path(node1, node2) {
+        Some(path_size) => Ok(Feedback::path_size(path_size)),
+        None => Err(Feedback::no_path_found(node1.code, node2.code)),
+    }
 }
 
 fn save_graph(graph: &Graph) -> RunOptResult {
