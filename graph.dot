@@ -1,0 +1,14 @@
+graph { 
+    1 [label="joao"]
+    2 [label="alo"]
+    3 [label="vertice"]
+    4 [label="alo teste"]
+    2 -- 2 [label="1"]
+    1 -- 2 [label="3"]
+    2 -- 3 [label="2"]
+    3 -- 1 [label="4"]
+    4 -- 1 [label="4"]
+    4 -- 2 [label="2"]
+    4 -- 3 [label="1"]
+    4 -- 4 [label="8"]
+}

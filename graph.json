@@ -21,6 +21,26 @@
             "from": 3,
             "to": 1,
             "weight": 4
+        },
+        {
+            "from": 4,
+            "to": 1,
+            "weight": 4
+        },
+        {
+            "from": 4,
+            "to": 2,
+            "weight": 2
+        },
+        {
+            "from": 4,
+            "to": 3,
+            "weight": 1
+        },
+        {
+            "from": 4,
+            "to": 4,
+            "weight": 8
         }
     ],
     "nodes": [
@@ -38,6 +58,12 @@
             "code": 3,
             "name": "vertice",
             "local_type": "tres"
+        },
+        
+        {
+            "code": 4,
+            "name": "alo teste",
+            "local_type": "oi"
         }
     ]
 }

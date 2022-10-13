@@ -1,6 +1,7 @@
 mod feedback;
 mod graph;
 mod graph_builder;
+mod graph_exporter;
 mod menu;
 mod node;
 

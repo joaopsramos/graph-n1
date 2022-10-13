@@ -1,5 +1,3 @@
-use std::fmt::format;
-
 use crate::graph::Edge;
 use colored::Colorize;
 
@@ -217,5 +215,17 @@ impl Feedback {
 
     pub fn is_not_subgraph() -> String {
         format!("O grafo informado {} subgrafo do atual", "não é".red())
+    }
+
+    pub fn graph_exported(path: &str) -> String {
+        let text = format!("{}", "O grafo foi exportado com sucesso!".green());
+        format!("{text} Arquivo: {path}")
+    }
+
+    pub fn graph_not_exported() -> String {
+        let executable = format!("{}", "graphviz".green());
+        let link = format!("{}", "https://graphviz.org/".cyan());
+
+        format!("{}\nVerifique se você possui o programa {executable} ({link}) instalado e se é possivel criar arquivos na pasta atual", "Erro ao exportar grafo".red())
     }
 }

@@ -2,10 +2,11 @@ use crate::{
     feedback::Feedback,
     graph::{Edge, Graph},
     graph_builder,
+    graph_exporter::{self, DOT_OUTPUT},
     node::Node,
 };
 use colored::Colorize;
-use std::{fs, io, path::Path};
+use std::{env, fs, io, path::Path};
 use MenuOpt::*;
 
 type RunOptResult = Result<String, String>;
@@ -28,6 +29,7 @@ pub enum MenuOpt {
     Load,
     Visualize,
     Save,
+    Export,
     Exit,
 }
 
@@ -80,6 +82,7 @@ pub fn show_menu() {
 ---
 {}) Visualizar grafo
 {}) Salvar grafo
+{}) Exportar grafo como PNG
 {}) Encerrar",
         "a".magenta().bold(),
         "b".magenta().bold(),
@@ -93,6 +96,7 @@ pub fn show_menu() {
         "j".magenta().bold(),
         "v".magenta().bold(),
         "s".magenta().bold(),
+        "x".magenta().bold(),
         "q".magenta().bold(),
     );
 
@@ -140,6 +144,7 @@ fn parse_option(option: &str) -> Option<MenuOpt> {
         "l" => Some(Load),
         "v" => Some(Visualize),
         "s" => Some(Save),
+        "x" => Some(Export),
         "q" => Some(Exit),
         _ => None,
     }
@@ -159,6 +164,7 @@ pub fn run_option(option: MenuOpt, graph: &mut Graph) {
         J => calc_path_between_nodes(graph),
         Save => save_graph(graph),
         Visualize => show_graph(graph),
+        Export => export_graph(graph),
         _ => Ok(format!("i")),
     };
 
@@ -364,6 +370,18 @@ pub fn load_graph() -> Option<Graph> {
 fn show_graph(graph: &Graph) -> RunOptResult {
     println!("{}", "** Grafo **".blue().bold());
     Ok(graph.to_string())
+}
+
+fn export_graph(graph: &Graph) -> RunOptResult {
+    match graph_exporter::export_graph(graph) {
+        Ok(_) => {
+            let cwd = env::current_dir().unwrap();
+            let path = Path::new(&cwd).join(DOT_OUTPUT);
+
+            Ok(Feedback::graph_exported(path.to_str().unwrap()))
+        }
+        Err(_) => Err(Feedback::graph_not_exported()),
+    }
 }
 
 fn read_code() -> usize {
