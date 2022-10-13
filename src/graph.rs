@@ -8,14 +8,6 @@ pub enum GraphError {
     EdgeDontExists,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Graph {
-    pub is_weighted: bool,
-    pub size: usize,
-    pub edges: Vec<Edge>,
-    pub nodes: Vec<Node>,
-}
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Edge {
     pub from: usize,
@@ -27,6 +19,14 @@ impl Edge {
     fn has(&self, from: usize, to: usize) -> bool {
         (self.from == from && self.to == to) || (self.from == to && self.to == from)
     }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Graph {
+    pub is_weighted: bool,
+    pub size: usize,
+    pub edges: Vec<Edge>,
+    pub nodes: Vec<Node>,
 }
 
 impl Graph {
@@ -228,17 +228,39 @@ impl Graph {
 
         Some(path_sum)
     }
+
+    pub fn is_subgraph(&self, subgraph: &Graph) -> bool {
+        for sub_node in &subgraph.nodes {
+            if !self.nodes.contains(&sub_node) {
+                return false;
+            }
+        }
+
+        for sub_edge in &subgraph.edges {
+            let inverse_from_to = Edge {
+                from: sub_edge.to,
+                to: sub_edge.from,
+                weight: sub_edge.weight,
+            };
+
+            if !self.edges.contains(&sub_edge) && !self.edges.contains(&inverse_from_to) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
 
 impl Display for Graph {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut string = format!("{}\n", "** Grafo **".blue().bold());
+        let mut string = String::new();
         let mut iter = self.nodes.iter().peekable();
 
         while let Some(node) = iter.next() {
             let connected_nodes = self.find_connected_nodes(node);
 
-            string = format!("{string}{node} -> {}", format_edges(connected_nodes));
+            string = format!("{string}{node} <-> {}", format_edges(connected_nodes));
 
             if iter.peek().is_some() {
                 string = format!("{string}\n");

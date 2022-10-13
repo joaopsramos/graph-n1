@@ -1,5 +1,6 @@
 mod feedback;
 mod graph;
+mod graph_builder;
 mod menu;
 mod node;
 
@@ -7,10 +8,8 @@ use crate::{
     feedback::Feedback,
     graph::*,
     menu::{MenuOpt, FILE_PATH},
-    node::*,
 };
-use colored::*;
-use std::{fs, io, path::Path, str::FromStr};
+use std::{fs, path::Path};
 
 const GRAPH_SIZE: usize = 4;
 
@@ -47,93 +46,25 @@ fn setup_graph_menu() -> Option<Graph> {
         };
 
         if !has_data {
-            return Some(read_graph());
+            return Some(graph_builder::init_graph());
         }
 
         menu::show_menu_load_graph();
+
         return match menu::read_option() {
             MenuOpt::Save => match menu::load_graph() {
                 None => {
                     println!("{}", Feedback::read_graph_file_error());
                     continue;
                 }
-                graph => return graph,
+                graph => graph,
             },
-            MenuOpt::No => Some(read_graph()),
+            MenuOpt::No => Some(graph_builder::init_graph()),
             MenuOpt::Exit => {
                 break None;
             }
             _ => {
                 println!("{}", Feedback::invalid_option());
-                continue;
-            }
-        };
-    }
-}
-
-fn read_graph() -> Graph {
-    let mut nodes = Vec::new();
-
-    let size = format!("{}", GRAPH_SIZE.to_string().green());
-    let text = format!("\nMonte seu grafo com {size} vértices").cyan();
-    println!("{}", text.bold().italic());
-
-    for i in 1..=GRAPH_SIZE {
-        let mut name = String::new();
-        let mut local_type = String::new();
-
-        print!("\n-----------------\n");
-        println!("{}", format!("** Vértice {i}/{GRAPH_SIZE} **").blue());
-
-        loop {
-            let name: String = read_value("Nome do local:", &mut name, None);
-            let local_type: String = read_value("Tipo do local:", &mut local_type, None);
-
-            if nodes
-                .iter()
-                .map(|v: &Node| v.code)
-                .collect::<Vec<usize>>()
-                .contains(&i)
-            {
-                println!("{}", "Esse código já existe, tente usar outro".red());
-                continue;
-            }
-
-            nodes.push(Node {
-                code: i,
-                name,
-                local_type,
-            });
-
-            break;
-        }
-    }
-
-    Graph {
-        is_weighted: false,
-        size: GRAPH_SIZE,
-        nodes,
-        edges: Vec::new(),
-    }
-}
-
-fn read_value<T>(text: &str, value: &mut String, error_msg: Option<&str>) -> T
-where
-    T: FromStr,
-{
-    let error_msg = error_msg.unwrap_or("Erro ao ler valor, por favor, digite novamente...");
-
-    loop {
-        *value = String::new();
-
-        println!("{}", text.yellow());
-
-        io::stdin().read_line(value).unwrap();
-
-        match value.trim().parse() {
-            Ok(parsed_value) => return parsed_value,
-            Err(_) => {
-                println!("{}", error_msg.red());
                 continue;
             }
         };

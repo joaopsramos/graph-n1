@@ -1,3 +1,5 @@
+use std::fmt::format;
+
 use crate::graph::Edge;
 use colored::Colorize;
 
@@ -8,19 +10,9 @@ impl Feedback {
         print!("\u{1b}[1F");
     }
 
-    pub fn option_read(opt: &str) -> String {
+    pub fn value_read(value: &str, text: &str) -> String {
         Self::clear_line();
-        format!("Opção digitada: {}", opt.magenta())
-    }
-
-    pub fn code_read(code: usize) -> String {
-        Self::clear_line();
-        format!("Código digitado: {}", code.to_string().magenta())
-    }
-
-    pub fn weight_read(weight: u32) -> String {
-        Self::clear_line();
-        format!("Peso digitado: {}", weight.to_string().magenta())
+        format!("{text}: {}", value.magenta())
     }
 
     pub fn cycle_read(cycle: &Vec<usize>) -> String {
@@ -217,5 +209,13 @@ impl Feedback {
 
     pub fn path_size(size: u32) -> String {
         format!("O tamanho do caminho é: {}", size.to_string().green())
+    }
+
+    pub fn is_subgraph() -> String {
+        format!("O grafo informado {} subgrafo do atual", "é".green())
+    }
+
+    pub fn is_not_subgraph() -> String {
+        format!("O grafo informado {} subgrafo do atual", "não é".red())
     }
 }

@@ -1,6 +1,7 @@
 use crate::{
     feedback::Feedback,
     graph::{Edge, Graph},
+    graph_builder,
     node::Node,
 };
 use colored::Colorize;
@@ -112,7 +113,7 @@ pub fn read_option() -> MenuOpt {
         match parse_option(&option.trim()) {
             Some(opt) => {
                 // Clear input
-                print!("{}", Feedback::option_read(&option));
+                print!("{}", Feedback::value_read(&option, "Opção digitada"));
                 break opt;
             }
             None => {
@@ -153,6 +154,7 @@ pub fn run_option(option: MenuOpt, graph: &mut Graph) {
         E => add_edge_menu(graph),
         F => remove_edge_menu(graph),
         G => make_graph_weighted(graph),
+        H => verify_if_graph_contains_subgraph(graph),
         I => is_graph_complete(graph),
         J => calc_path_between_nodes(graph),
         Save => save_graph(graph),
@@ -298,6 +300,16 @@ fn make_graph_weighted(graph: &mut Graph) -> RunOptResult {
     Ok(Feedback::success_graph_weighted())
 }
 
+fn verify_if_graph_contains_subgraph(graph: &Graph) -> RunOptResult {
+    let subgraph = graph_builder::read_subgraph(graph.is_weighted);
+
+    if graph.is_subgraph(&subgraph) {
+        Ok(Feedback::is_subgraph())
+    } else {
+        Ok(Feedback::is_not_subgraph())
+    }
+}
+
 fn is_graph_complete(graph: &Graph) -> RunOptResult {
     if graph.is_complete() {
         Ok(Feedback::graph_is_complete())
@@ -350,6 +362,7 @@ pub fn load_graph() -> Option<Graph> {
 }
 
 fn show_graph(graph: &Graph) -> RunOptResult {
+    println!("{}", "** Grafo **".blue().bold());
     Ok(graph.to_string())
 }
 
@@ -360,10 +373,10 @@ fn read_code() -> usize {
         let mut code = String::new();
 
         io::stdin().read_line(&mut code).unwrap();
+        println!("{}", Feedback::value_read(&code, "Código digitado"));
 
-        match code.trim().parse() {
+        match code.trim().parse::<usize>() {
             Ok(parsed_code) => {
-                println!("{}", Feedback::code_read(parsed_code));
                 break parsed_code;
             }
             Err(_) => {
@@ -423,10 +436,10 @@ fn read_weight() -> u32 {
         let mut weight = String::new();
 
         io::stdin().read_line(&mut weight).unwrap();
+        println!("{}", Feedback::value_read(&weight, "Peso digitado"));
 
         match weight.trim().parse() {
             Ok(parsed_weight) => {
-                println!("{}", Feedback::weight_read(parsed_weight));
                 break parsed_weight;
             }
             Err(_) => {
