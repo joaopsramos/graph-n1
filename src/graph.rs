@@ -109,9 +109,28 @@ impl Graph {
             .collect()
     }
 
-    // fn get_node_edges(&self, node: &Node) -> Vec<&Node> {
-    //     self.edges.iter().filter(|edge| edge.from == node.code || edge.to == node.code).collect()
-    // }
+    fn get_node_edges(&self, node: &Node) -> Vec<Edge> {
+        self.edges
+            .iter()
+            .filter_map(|edge| {
+                if edge.from == node.code {
+                    return Some(Edge {
+                        from: node.code,
+                        to: edge.to,
+                        ..*edge
+                    });
+                } else if edge.to == node.code {
+                    return Some(Edge {
+                        from: node.code,
+                        to: edge.from,
+                        ..*edge
+                    });
+                }
+
+                None
+            })
+            .collect()
+    }
 
     pub fn get_path(&self, start_node: &Node, end_node: &Node) -> Option<Vec<&Node>> {
         let mut queue = Vec::new();
@@ -269,30 +288,40 @@ impl Display for Graph {
         let mut iter = self.nodes.iter().peekable();
 
         while let Some(node) = iter.next() {
-            let connected_nodes = self.find_connected_nodes(node);
+            // let connected_nodes = self.get_node_edges(node);
 
-            string = format!("{string}{node} <-> {}", format_edges(connected_nodes));
+            string = format!("{string}{node}\n");
 
             if iter.peek().is_some() {
-                string = format!("{string}\n");
+                string = format!("{string}");
             }
         }
 
+        string = format!("{string}\n{}", format_edges(self.is_weighted, &self.edges));
         write!(f, "{string}")
     }
 }
 
-fn format_edges(edges: Vec<usize>) -> String {
-    let mut string = "[".to_string();
+fn format_edges(weighted: bool, edges: &Vec<Edge>) -> String {
+    let mut string = "".to_string();
     let mut iter = edges.iter().peekable();
 
     while let Some(edge) = iter.next() {
-        string = format!("{string}{}", edge.to_string().cyan());
+        string = format!(
+            "{string}{} -> {}",
+            edge.from.to_string().cyan(),
+            edge.to.to_string().cyan()
+        );
 
+        if weighted {
+            string = format!("{string} Peso = {}", edge.weight);
+        }
+
+        string = format!("{string}");
         if iter.peek().is_some() {
-            string = format!("{string}, ");
+            string = format!("{string}\n");
         }
     }
 
-    format!("{string}]")
+    format!("{string}")
 }
