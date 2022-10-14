@@ -156,7 +156,7 @@ pub fn run_option(option: MenuOpt, graph: &mut Graph) {
         B => has_buckle_menu(graph),
         C => find_path_menu(graph),
         D => find_and_show_cycle(graph),
-        E => add_edge_menu(graph),
+        E => add_edges_menu(graph),
         F => remove_edge_menu(graph),
         G => make_graph_weighted(graph),
         H => verify_if_graph_contains_subgraph(graph),
@@ -243,7 +243,7 @@ fn get_string_path(nodes: Vec<&Node>) -> String {
         .join(" <-> ")
 }
 
-fn add_edge_menu(graph: &mut Graph) -> RunOptResult {
+fn add_edges_menu(graph: &mut Graph) -> RunOptResult {
     let default_weight = 1;
 
     println!("{}\n", format_available_nodes(graph));
@@ -251,23 +251,37 @@ fn add_edge_menu(graph: &mut Graph) -> RunOptResult {
     println!("{}", Feedback::nth_node("Primeiro"));
     let from = read_node(graph)?.code;
 
-    println!("\n{}", Feedback::nth_node("Segundo"));
-    let to = read_node(graph)?.code;
+    println!(
+        "{}",
+        Feedback::nth_node(
+            "Segundo vértice, para adicionar mais de uma aresta, separe os códigos usando vírgula"
+        )
+    );
+    let to = read_codes(graph);
 
-    let weight = if graph.is_weighted {
-        print!("\n");
-        read_weight()
-    } else {
-        default_weight
-    };
+    for code in to {
+        let weight = if graph.is_weighted {
+            println!("Aresta {}", Feedback::format_edge(from, code).blue());
+            read_weight()
+        } else {
+            default_weight
+        };
 
-    let edge = Edge { from, to, weight };
+        let edge = Edge {
+            from,
+            to: code,
+            weight,
+        };
 
-    print!("\n");
-    match graph.add_edge(edge.clone()) {
-        Ok(_) => Ok(Feedback::edge_added(edge)),
-        Err(_) => Err(Feedback::edge_already_exists()),
+        match graph.add_edge(edge.clone()) {
+            Ok(_) => println!("{}\n", Feedback::edge_added(edge)),
+            Err(_) => println!("{}\n", Feedback::edge_already_exists(&edge)),
+        };
     }
+
+    Feedback::clear_line();
+    Feedback::clear_line();
+    Ok("".to_string())
 }
 
 fn remove_edge_menu(graph: &mut Graph) -> RunOptResult {
@@ -405,6 +419,37 @@ fn read_code() -> usize {
     }
 }
 
+fn read_codes(graph: &Graph) -> Vec<usize> {
+    loop {
+        println!("{}", Feedback::read_codes());
+
+        let mut codes = String::new();
+
+        io::stdin().read_line(&mut codes).unwrap();
+        println!("{}", Feedback::value_read(&codes, "Código(s) digitado(s)"));
+
+        let codes_iter = codes.trim().split(",").map(|c| c.trim().parse::<usize>());
+
+        if codes_iter.clone().any(|c| c.is_err()) {
+            println!("{}\n", Feedback::invalid_codes());
+            continue;
+        }
+
+        let codes_iter = codes_iter.map(|c| c.unwrap());
+
+        return codes_iter
+            .filter(|&c| {
+                if graph.find_by_code(c).is_some() {
+                    true
+                } else {
+                    println!("{}, ignorando...\n", Feedback::node_not_found_with_code(c));
+                    false
+                }
+            })
+            .collect();
+    }
+}
+
 fn read_cycle() -> Vec<usize> {
     loop {
         println!("{}", Feedback::read_codes());
@@ -440,7 +485,7 @@ fn read_node(graph: &Graph) -> Result<&Node, String> {
         match graph.find_by_code(code) {
             Some(node) => break Ok(node),
             None => {
-                println!("{}\n", Feedback::node_not_found_with_code());
+                println!("{}\n", Feedback::node_not_found());
                 continue;
             }
         }

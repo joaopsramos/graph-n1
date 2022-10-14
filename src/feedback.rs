@@ -1,3 +1,5 @@
+use std::fmt::format;
+
 use crate::graph::Edge;
 use colored::Colorize;
 
@@ -32,11 +34,20 @@ impl Feedback {
         )
     }
 
-    pub fn node_not_found_with_code() -> String {
+    pub fn node_not_found() -> String {
         format!(
             "{}",
             "Nenhum vértice foi encontrado com esse código, tente digitar outro...".red()
         )
+    }
+
+    pub fn node_not_found_with_code(code: usize) -> String {
+        format!(
+            "Não foi encontrado nenhum vértice com o código: {}",
+            code.to_string().cyan()
+        )
+        .red()
+        .to_string()
     }
 
     pub fn invalid_code() -> String {
@@ -138,6 +149,10 @@ impl Feedback {
         )
     }
 
+    pub fn edges_added() -> String {
+        format!("{}", "Arestas criadas com sucesso".green())
+    }
+
     pub fn edge_removed(edge1: usize, edge2: usize) -> String {
         format!(
             "{} {} {}",
@@ -173,8 +188,10 @@ impl Feedback {
         format!("Ciclo {} encontrado", "não".red())
     }
 
-    pub fn edge_already_exists() -> String {
-        format!("{}", "Aresta já existe".red())
+    pub fn edge_already_exists(edge: &Edge) -> String {
+        format!("Aresta {} já existe", Self::format_edge(edge.from, edge.to))
+            .red()
+            .to_string()
     }
 
     pub fn edge_dont_exists() -> String {

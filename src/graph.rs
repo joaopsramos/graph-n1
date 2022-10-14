@@ -109,29 +109,6 @@ impl Graph {
             .collect()
     }
 
-    fn get_node_edges(&self, node: &Node) -> Vec<Edge> {
-        self.edges
-            .iter()
-            .filter_map(|edge| {
-                if edge.from == node.code {
-                    return Some(Edge {
-                        from: node.code,
-                        to: edge.to,
-                        ..*edge
-                    });
-                } else if edge.to == node.code {
-                    return Some(Edge {
-                        from: node.code,
-                        to: edge.from,
-                        ..*edge
-                    });
-                }
-
-                None
-            })
-            .collect()
-    }
-
     pub fn get_path(&self, start_node: &Node, end_node: &Node) -> Option<Vec<&Node>> {
         let mut queue = Vec::new();
         let mut visited = Vec::new();
@@ -288,8 +265,6 @@ impl Display for Graph {
         let mut iter = self.nodes.iter().peekable();
 
         while let Some(node) = iter.next() {
-            // let connected_nodes = self.get_node_edges(node);
-
             string = format!("{string}{node}\n");
 
             if iter.peek().is_some() {
@@ -308,13 +283,13 @@ fn format_edges(weighted: bool, edges: &Vec<Edge>) -> String {
 
     while let Some(edge) = iter.next() {
         string = format!(
-            "{string}{} -> {}",
+            "{string}{} <-> {}",
             edge.from.to_string().cyan(),
             edge.to.to_string().cyan()
         );
 
         if weighted {
-            string = format!("{string} Peso = {}", edge.weight);
+            string = format!("{string}  Peso = {}", edge.weight.to_string().cyan());
         }
 
         string = format!("{string}");
