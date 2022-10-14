@@ -12,7 +12,7 @@ use crate::{
 };
 use std::{fs, path::Path};
 
-const GRAPH_SIZE: usize = 4;
+const GRAPH_SIZE: usize = 10;
 
 fn main() {
     let mut graph = match setup_graph_menu() {
