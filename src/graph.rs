@@ -109,6 +109,10 @@ impl Graph {
             .collect()
     }
 
+    // fn get_node_edges(&self, node: &Node) -> Vec<&Node> {
+    //     self.edges.iter().filter(|edge| edge.from == node.code || edge.to == node.code).collect()
+    // }
+
     pub fn get_path(&self, start_node: &Node, end_node: &Node) -> Option<Vec<&Node>> {
         let mut queue = Vec::new();
         let mut visited = Vec::new();
@@ -230,21 +234,28 @@ impl Graph {
     }
 
     pub fn is_subgraph(&self, subgraph: &Graph) -> bool {
+        let subgraph_node_codes: Vec<usize> = subgraph.nodes.iter().map(|el| el.code).collect();
+
         for sub_node in &subgraph.nodes {
             if !self.nodes.contains(&sub_node) {
                 return false;
             }
-        }
 
-        for sub_edge in &subgraph.edges {
-            let inverse_from_to = Edge {
-                from: sub_edge.to,
-                to: sub_edge.from,
-                weight: sub_edge.weight,
-            };
+            let sub_node_edges = subgraph.find_connected_nodes(sub_node);
+            let node_edges = self.find_connected_nodes(sub_node);
 
-            if !self.edges.contains(&sub_edge) && !self.edges.contains(&inverse_from_to) {
-                return false;
+            if sub_node_edges.is_empty() {
+                for edge in &node_edges {
+                    if subgraph_node_codes.contains(&edge) {
+                        return false;
+                    }
+                }
+            }
+
+            for sub_node_edge in &sub_node_edges {
+                if !node_edges.contains(&sub_node_edge) {
+                    return false;
+                }
             }
         }
 

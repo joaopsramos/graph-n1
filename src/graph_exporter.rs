@@ -14,7 +14,10 @@ pub fn export_graph(graph: &Graph) -> Result<(), Box<dyn Error>> {
         f = format!("{f}    {} [label=\"{}\"]\n", node.code, node.name);
     }
 
-    for edge in &graph.edges {
+    let mut mgraph = graph.clone();
+    mgraph.edges.sort_by(|el1, el2| el1.weight.cmp(&el2.weight));
+
+    for edge in &mgraph.edges {
         f = format!("{f}    {} -- {}", edge.from, edge.to);
 
         if graph.is_weighted {
