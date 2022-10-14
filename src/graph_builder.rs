@@ -13,7 +13,7 @@ pub fn init_graph() -> Graph {
         let mut name = String::new();
         let mut local_type = String::new();
 
-        print!("\n-----------------\n");
+        print!("\n------------------\n");
         println!("{}", format!("** Vértice {i}/{GRAPH_SIZE} **").blue());
 
         loop {
