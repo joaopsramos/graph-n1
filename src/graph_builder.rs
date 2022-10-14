@@ -62,6 +62,11 @@ where
         io::stdin().read_line(value).unwrap();
         println!("{}", Feedback::value_read(&value, "Valor digitado"));
 
+        if value.trim().is_empty() {
+            println!("{}", error_msg.red());
+            continue;
+        }
+
         match value.trim().parse() {
             Ok(parsed_value) => return parsed_value,
             Err(_) => {
