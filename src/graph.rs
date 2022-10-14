@@ -272,8 +272,13 @@ impl Display for Graph {
             }
         }
 
+        if self.edges.is_empty() {
+            return write!(f, "{string}");
+        }
+
         string.push_str(&"\n** Arestas **".blue().bold().to_string());
         string = format!("{string}\n{}", format_edges(self.is_weighted, &self.edges));
+
         write!(f, "{string}")
     }
 }
