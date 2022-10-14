@@ -261,7 +261,7 @@ impl Graph {
 
 impl Display for Graph {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut string = String::new();
+        let mut string = "** Grafo **\n".blue().bold().to_string();
         let mut iter = self.nodes.iter().peekable();
 
         while let Some(node) = iter.next() {
@@ -272,6 +272,7 @@ impl Display for Graph {
             }
         }
 
+        string.push_str(&"\n** Arestas **".blue().bold().to_string());
         string = format!("{string}\n{}", format_edges(self.is_weighted, &self.edges));
         write!(f, "{string}")
     }

@@ -1,5 +1,3 @@
-use std::fmt::format;
-
 use crate::graph::Edge;
 use colored::Colorize;
 
@@ -147,10 +145,6 @@ impl Feedback {
             "Aresta criada com sucesso".green(),
             Self::format_edge(edge.from, edge.to)
         )
-    }
-
-    pub fn edges_added() -> String {
-        format!("{}", "Arestas criadas com sucesso".green())
     }
 
     pub fn edge_removed(edge1: usize, edge2: usize) -> String {

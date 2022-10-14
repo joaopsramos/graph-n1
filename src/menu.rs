@@ -382,7 +382,6 @@ pub fn load_graph() -> Option<Graph> {
 }
 
 fn show_graph(graph: &Graph) -> RunOptResult {
-    println!("{}", "** Grafo **".blue().bold());
     Ok(graph.to_string())
 }
 
